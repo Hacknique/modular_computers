@@ -1,0 +1,3 @@
+# Internet Settings
+
+internet_enabled (Enable Internet) bool false
