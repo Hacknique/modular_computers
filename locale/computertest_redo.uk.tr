@@ -1,2 +1,4 @@
 # textdomain: computertest_redo
+Terminal:=
+Execute=
 Computer=Комп'ютер

@@ -10,11 +10,11 @@
 
 local terminal_text = ""
 
-
-function formspec(terminal_text)
-    return "size[16,10]" .. 
-        "textarea[0.5,0.5;15,8;terminal;Terminal:;" .. minetest.formspec_escape(terminal_text) .. "]" .. 
-        "button[6,8.5;4,1;execute;Execute]" ..
+local function formspec(terminal_text)
+    return "size[16,10]" ..
+        "textarea[0.5,0.5;15,8;terminal;" ..
+        ctr.S("Terminal:") .. ";" .. minetest.formspec_escape(terminal_text) .. "]" ..
+        "button[6,8.5;4,1;execute;" .. ctr.S("Execute") .. "]" ..
         "field_close_on_enter[terminal;false]" ..
         "set_focus[execute;true]"
 end
@@ -23,12 +23,12 @@ end
 minetest.register_node("computertest_redo:computer", {
     description = ctr.S("Computer"),
     tiles = {
-        "computer_side.png",      -- Y-
-        "computer_side.png",      -- Y+
-        "computer_side.png",      -- X-
-        "computer_side.png",      -- X+
-        "computer_side.png",      -- Z-
-        "computer_front.png",     -- Z+
+        "computer_side.png",  -- Y-
+        "computer_side.png",  -- Y+
+        "computer_side.png",  -- X-
+        "computer_side.png",  -- X+
+        "computer_side.png",  -- Z-
+        "computer_front.png", -- Z+
     },
     groups = { cracky = 2 },
     paramtype = "light",
@@ -46,9 +46,9 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
     if formname == "computertest_redo:computer_formspec" then
         if fields.execute then
             -- Usage:
-            local terminal_text = fields.terminal  -- Assume fields.terminal contains the text from the textbox
+            local terminal_text = fields.terminal -- Assume fields.terminal contains the text from the textbox
             local lines = ctr.split(terminal_text, "\n")
-            local command = lines[#lines]  -- Get the last line
+            local command = lines[#lines]         -- Get the last line
 
             -- Append the command to the terminal text
             if command ~= "" then
@@ -68,7 +68,8 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             end
 
 
-            minetest.log("action", "[ctr]:\t" .. "Player:\t" .. player:get_player_name() .. "Submitted command:\t" .. command)
+            minetest.log("action",
+                "[ctr]:\t" .. "Player:\t" .. player:get_player_name() .. "Submitted command:\t" .. command)
             -- Show the updated formspec to the player
             minetest.show_formspec(player:get_player_name(), formname, formspec(terminal_text))
         end
@@ -100,14 +101,14 @@ elseif modpath("mcl_core") then
 end
 
 if not stone or not core or not glass then
-    minetest.log("error","[ctr]:\tcould not find a crafting recipe")
+    minetest.log("error", "[ctr]:\tcould not find a crafting recipe")
 else
-minetest.register_craft({
-    output = "computertest_redo:computer",
-    recipe = {
-        { stone, glass,      stone },
-        { stone, core, stone },
-        { stone, stone,      stone },
-    },
-})
+    minetest.register_craft({
+        output = "computertest_redo:computer",
+        recipe = {
+            { stone, glass, stone },
+            { stone, core,  stone },
+            { stone, stone, stone },
+        },
+    })
 end

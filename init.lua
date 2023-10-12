@@ -5,11 +5,12 @@
 -- You should have received a copy of the GNU Affero General Public License along with ComputerTest Redo. If not, see <https://www.gnu.org/licenses/>.
 -- The license is included in the project root under the file labeled LICENSE. All files not otherwise specified under a different license shall be put under this license.
 
-ctr = {}  -- Local alias for convenience
+ctr = {} -- Local alias for convenience
 
 ctr.mod = {}
 ctr.mod.name = minetest.get_current_modname()
 ctr.mod.path = minetest.get_modpath(ctr.mod.name)
+
 ctr.registered_commands = {}
 
 ctr.S = minetest.get_translator(ctr.mod.name)
@@ -18,5 +19,3 @@ ctr.S = minetest.get_translator(ctr.mod.name)
 dofile(ctr.mod.path .. "/src/utilities.lua")
 dofile(ctr.mod.path .. "/src/os/api/cli.lua")
 dofile(ctr.mod.path .. "/src/nodes/computer.lua")
-minetest.log(ctr.mod.path .. "/src/nodes/computer.lua")
-
