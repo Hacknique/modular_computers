@@ -10,9 +10,13 @@ ctr = {}  -- Local alias for convenience
 ctr.mod = {}
 ctr.mod.name = minetest.get_current_modname()
 ctr.mod.path = minetest.get_modpath(ctr.mod.name)
+ctr.registered_commands = {}
 
 ctr.S = minetest.get_translator(ctr.mod.name)
 
 -- Load the scripts
-dofile(ctr.mod.path .. "/src/computer_node.lua")
+dofile(ctr.mod.path .. "/src/utilities.lua")
+dofile(ctr.mod.path .. "/src/os/api/cli.lua")
+dofile(ctr.mod.path .. "/src/nodes/computer.lua")
+minetest.log(ctr.mod.path .. "/src/nodes/computer.lua")
 

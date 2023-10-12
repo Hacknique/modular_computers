@@ -10,15 +10,17 @@
 
 local terminal_text = ""
 
+
 function formspec(terminal_text)
-return "size[15,10]" .. 
-    "textarea[0.5,0.5;14,8;terminal_out;Terminal:;" .. minetest.formspec_escape(terminal_text) .. "]" .. 
-    "field_close_on_enter[terminal_in;false]" .. 
-    "set_focus[terminal_in;true]" ..
-    "field[0.5,9;14,1;terminal_in;Input Command:;]"
+    return "size[16,10]" .. 
+        "textarea[0.5,0.5;15,8;terminal;Terminal:;" .. minetest.formspec_escape(terminal_text) .. "]" .. 
+        "button[6,8.5;4,1;execute;Execute]" ..
+        "field_close_on_enter[terminal;false]" ..
+        "set_focus[execute;true]"
 end
+
 -- register the computer node
-minetest.register_node("ctr_nodes:computer", {
+minetest.register_node("computertest_redo:computer", {
     description = ctr.S("Computer"),
     tiles = {
         "computer_side.png",      -- Y-
@@ -34,22 +36,39 @@ minetest.register_node("ctr_nodes:computer", {
     paramtype2 = "facedir",          -- needed for the node to rotate properly on place
     on_place = minetest.rotate_node, -- rotates the node on place
     on_rightclick = function(pos, node, player)
-        local formname = "ctr_nodes:computer_formspec"
+        local formname = "computertest_redo:computer_formspec"
         minetest.show_formspec(player:get_player_name(), formname, formspec(""))
     end,
 })
 
 -- Handle form submission
 minetest.register_on_player_receive_fields(function(player, formname, fields)
-    if formname == "ctr_nodes:computer_formspec" then
-        if fields.key_enter_field == "terminal_in" then
+    if formname == "computertest_redo:computer_formspec" then
+        if fields.execute then
+            -- Usage:
+            local terminal_text = fields.terminal  -- Assume fields.terminal contains the text from the textbox
+            local lines = ctr.split(terminal_text, "\n")
+            local command = lines[#lines]  -- Get the last line
+
             -- Append the command to the terminal text
-            if fields.terminal_out ~= "" then
-                terminal_text = fields.terminal_out .. "\n" .. fields.terminal_in
-            else
-                terminal_text = fields.terminal_in
+            if command ~= "" then
+                terminal_text = fields.terminal .. "\n"
             end
-            minetest.log("action", "[ctr]:\t" .. "Player:\t" .. player:get_player_name() .. "Submitted command:\t" .. fields.terminal_in)
+
+            -- Execute the command
+            for name, def in pairs(ctr.registered_commands) do
+                if name == command then
+                    local stdin, stdout, stderr, exit_code = def.func(player, ctr.split(command, " "))
+                    if stderr ~= "" then
+                        terminal_text = terminal_text .. stderr
+                    elseif stdout ~= "" then
+                        terminal_text = terminal_text .. stdout
+                    end
+                end
+            end
+
+
+            minetest.log("action", "[ctr]:\t" .. "Player:\t" .. player:get_player_name() .. "Submitted command:\t" .. command)
             -- Show the updated formspec to the player
             minetest.show_formspec(player:get_player_name(), formname, formspec(terminal_text))
         end
@@ -84,7 +103,7 @@ if not stone or not core or not glass then
     minetest.log("error","[ctr]:\tcould not find a crafting recipe")
 else
 minetest.register_craft({
-    output = "ctr_nodes:computer",
+    output = "computertest_redo:computer",
     recipe = {
         { stone, glass,      stone },
         { stone, core, stone },
