@@ -1,5 +1,5 @@
 # textdomain: computertest_redo
 Terminal=Термінал
 Execute=Виконати
-Input Command=Команда введенням 
+Input Command=Введіть команду
 Computer=Комп'ютер
