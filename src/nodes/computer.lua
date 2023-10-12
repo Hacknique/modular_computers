@@ -59,14 +59,14 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             end
 
             -- Execute the command
-            for name, def in pairs(ctr.registered_commands) do
-                if name == command then
-                    local stdin, stdout, stderr, exit_code = def.func(player, ctr.split(command, " "))
-                    if stderr ~= "" then
-                        terminal_text = terminal_text .. stderr
-                    elseif stdout ~= "" then
-                        terminal_text = terminal_text .. stdout
-                    end
+            local args = string.split(command, "%s+", false, -1, true)
+            local def = ctr.registered_commands[args[1]]
+            if def ~= nil then
+                local stdin, stdout, stderr, exit_code = def.func(player, #args-1, unpack(args, 2))
+                if stderr ~= "" then
+                    terminal_text = terminal_text .. stderr
+                elseif stdout ~= "" then
+                    terminal_text = terminal_text .. stdout
                 end
             end
 
