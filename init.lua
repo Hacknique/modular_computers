@@ -18,5 +18,6 @@ ctr.S = minetest.get_translator(ctr.mod.name)
 
 -- Load the scripts
 dofile(ctr.mod.path .. "/src/utilities.lua")
-dofile(ctr.mod.path .. "/src/os/api/cli.lua")
 dofile(ctr.mod.path .. "/src/nodes/computer.lua")
+dofile(ctr.mod.path .. "/src/os/init.lua")
+

@@ -1,7 +1,4 @@
-function ctr.split(str, delim)
-    local result = {}
-    for match in string.gmatch(str, "([^" .. delim .. "]+)") do
-        table.insert(result, match)
-    end
-    return result
+function ctr.generate_id(player_name)
+    local current_time = tostring(os.time())
+    return minetest.get_password_hash(player_name, current_time)
 end
