@@ -1,4 +1,4 @@
 # textdomain: computertest_redo
-Terminal:=
-Execute=
+Terminal:=Термінал
+Execute=Виконати
 Computer=Комп'ютер
