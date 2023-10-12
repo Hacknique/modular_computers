@@ -12,11 +12,13 @@ local terminal_text = ""
 
 local function formspec(terminal_text)
     return "size[16,10]" ..
-        "textarea[0.5,0.5;15,8;terminal;" ..
-        ctr.S("Terminal:") .. ";" .. minetest.formspec_escape(terminal_text) .. "]" ..
-        "button[6,8.5;4,1;execute;" .. ctr.S("Execute") .. "]" ..
-        "field_close_on_enter[terminal;false]" ..
-        "set_focus[execute;true]"
+        "textarea[0.5,0.5;15,8;terminal_out;" ..
+        ctr.S("Terminal") .. ":;" .. minetest.formspec_escape(terminal_text) .. "]" ..
+        "button[6,9.5;4,1;execute;" .. ctr.S("Execute") .. "]" ..
+        "field_close_on_enter[terminal_out;false]" ..
+        "field_close_on_enter[terminal_in;false]" ..
+        "set_focus[terminal_in;true]" ..
+        "field[0.5,9;15,1;terminal_in;"..ctr.S("Input Command")..":;]"
 end
 
 -- register the computer node
@@ -41,18 +43,19 @@ minetest.register_node("computertest_redo:computer", {
     end,
 })
 
+-- Your formspec function remains the same
+
 -- Handle form submission
 minetest.register_on_player_receive_fields(function(player, formname, fields)
     if formname == "computertest_redo:computer_formspec" then
-        if fields.execute then
-            -- Usage:
-            local terminal_text = fields.terminal -- Assume fields.terminal contains the text from the textbox
-            local lines = ctr.split(terminal_text, "\n")
-            local command = lines[#lines]         -- Get the last line
+        if fields.execute or fields.key_enter_field == "terminal_in" then
+            local player_name = player:get_player_name()
+            terminal_text = terminal_text or ""  -- Get existing terminal text
+            local command = fields.terminal_in  -- Get the command from the input field
 
             -- Append the command to the terminal text
             if command ~= "" then
-                terminal_text = fields.terminal .. "\n"
+                terminal_text = terminal_text .. command .. "\n"
             end
 
             -- Execute the command
@@ -67,14 +70,13 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                 end
             end
 
-
-            minetest.log("action",
-                "[ctr]:\t" .. "Player:\t" .. player:get_player_name() .. "Submitted command:\t" .. command)
+            minetest.log("action", "[ctr]:\t" .. "Player:\t" .. player_name .. "Submitted command:\t" .. command)
             -- Show the updated formspec to the player
-            minetest.show_formspec(player:get_player_name(), formname, formspec(terminal_text))
+            minetest.show_formspec(player_name, formname, formspec(terminal_text))
         end
     end
 end)
+
 
 
 -- local shortcut for get_modpath

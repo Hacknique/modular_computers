@@ -1,4 +1,5 @@
 # textdomain: computertest_redo
 Terminal:=
 Execute=
+Input Command=
 Computer=
