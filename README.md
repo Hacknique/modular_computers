@@ -1,8 +1,13 @@
-# ComputerTest Redo
+![banner](.github/assets/banner.png)
 
 A comprehensive implementation of ComputerCraft in Minetest.
 
 ## License
++ [Code License](LICENSE)
++ [Assets License](textures/LICENSE)
++ [Documentation License](.docs/LICENSE)
+
+<!-- 
 
 ### Code License
 
@@ -31,4 +36,4 @@ A comprehensive implementation of ComputerCraft in Minetest.
 
     Copyright (C) 2023 James David Clarke
 
-    Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the 'LICENSE' file located in the 'docs' folder.
+    Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the 'LICENSE' file located in the 'docs' folder. -->
