@@ -40,14 +40,18 @@ if modpath("default") and modpath("mesecons_luacontroller") then
     stone = "default:stone"
     core = "mesecons_luacontroller:luacontroller0000"
     glass = "default:glass"
+elseif modpath("default") then
+    stone = "default:stone"
+    core = "default:mese"
+    glass = "default:glass"
 elseif modpath("mcl_core") then
     stone = "mcl_core:stone"
-    core = "mcl_redstone:redstone_block"
-    glass = "mcl_core:glass_pane"
+    core = "mesecons_torch:redstoneblock"
+    glass = "xpanes:pane_natural_flat"
 end
 
 if not stone or not core or not glass then
-    ctr:err("could not find a crafting recipe")
+    minetest.log("error","[ctr]:\tcould not find a crafting recipe")
 else
 minetest.register_craft({
     output = "ctr_nodes:computer",
