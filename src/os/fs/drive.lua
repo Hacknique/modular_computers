@@ -1,9 +1,8 @@
 ctr.os.fs.drive = {}
 
-DriveTypes = {
-    HARD_DRIVE = [0, "hd", "hard_drive"],
-    FLOPPY_DRIVE = [1, "fd", "floppy_drive"],
-}
+DriveTypes = {"hd", "fd"}
+-- 1 -> HDD
+-- 2 -> FDD
 
 DRIVE_LETTERS = {
     "a",
@@ -34,17 +33,15 @@ DRIVE_LETTERS = {
     "z"
 }
 
-function ctr.os.fs.drive.create(id, pos, type)
-    for key, value in pairs(DriveTypes) do
-        if value[2] == type then
+function ctr.os.fs.drive.create(pos, type_id)
+    for index in ipairs(DriveTypes) do
+        if index == type_id then
             local computer_meta = minetest.get_meta(pos)
-            local n_filesystems = #mtfs.list_filesystems(pos)
-            computer_meta:set_string("filesystem_".. .. tostring(n_filesystems + 1) .. "_" .. id, minetest.serialize({}))
+            local n_filesystems = #ctr.os.fs.drive.list(pos)
+
+            computer_meta:set_string("drive_".. DriveTypes[index] .. DRIVE_LETTERS[n_filesystems + 1], minetest.serialize({}))
         end
     end
-    local computer_meta = minetest.get_meta(pos)
-    local n_filesystems = #mtfs.list_filesystems(pos)
-    computer_meta:set_string("filesystem_".. tostring(n_filesystems + 1) .. "_" .. id, minetest.serialize({}))
 end
 
 function ctr.os.fs.drive.get(pos)

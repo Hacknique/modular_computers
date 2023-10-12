@@ -36,7 +36,50 @@ minetest.register_node("computertest_redo:computer", {
     paramtype = "light",
     light_source = 6,
     paramtype2 = "facedir",          -- needed for the node to rotate properly on place
-    on_place = minetest.rotate_node, -- rotates the node on place
+
+    -- Ensure only one item is dropped.
+    drop = "",  -- Prevent default drop
+    
+    on_place = function(itemstack, placer, pointed_thing)
+        local pos = pointed_thing.above  -- get the position where the node will be placed
+        local player_name = placer:get_player_name()
+        local item_meta = itemstack:get_meta()
+        local node_meta = minetest.get_meta(pos)
+        local id = item_meta:get_string("id")
+
+        -- if id is not set on itemstack, generate a new id
+        if id == "" then
+            id = ctr.generate_id(player_name)
+            item_meta:set_string("id", id)  -- store id in itemstack metadata
+        end
+
+        -- transfer all metadata from item to node
+        for k, v in pairs(item_meta:to_table().fields) do
+            node_meta:set_string(k, v)
+        end
+        
+        minetest.rotate_node(itemstack, placer, pointed_thing)  -- rotate the node on place
+        return itemstack  -- return the modified itemstack
+    end,
+    after_dig_node = function(pos, oldnode, oldmetadata, digger)
+        if not creative.is_enabled_for(digger:get_player_name()) then
+            local itemstack = ItemStack("computertest_redo:computer")
+            local item_meta = itemstack:get_meta()
+            
+            -- transfer all metadata from node to item
+            for k, v in pairs(oldmetadata.fields) do
+                item_meta:set_string(k, v)
+            end
+            
+            -- attempt to merge the itemstack with an existing itemstack in the player's inventory
+            local leftover = digger:get_inventory():add_item("main", itemstack)
+            -- if the itemstack could not be fully merged, add the leftover itemstack to the world
+            if not leftover:is_empty() then
+                minetest.item_drop(leftover, digger, pos)
+            end
+        end
+    end,
+
     on_rightclick = function(pos, node, player)
         local formname = "computertest_redo:computer_formspec"
         minetest.show_formspec(player:get_player_name(), formname, formspec(""))
