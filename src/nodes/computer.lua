@@ -94,7 +94,7 @@ if modpath("default") and modpath("mesecons_luacontroller") then
     glass = "default:glass"
 elseif modpath("default") then
     stone = "default:stone"
-    core = "default:mese"
+    core = "default:mese_crystal"
     glass = "default:glass"
 elseif modpath("mcl_core") then
     stone = "mcl_core:stone"
