@@ -5,18 +5,20 @@
 -- You should have received a copy of the GNU Affero General Public License along with ComputerTest Redo. If not, see <https://www.gnu.org/licenses/>.
 -- The license is included in the project root under the file labeled LICENSE. All files not otherwise specified under a different license shall be put under this license.
 
+-- Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
 -- Copyright (c) 2023 nitrogenez
+
 
 -- register the computer node
 minetest.register_node("ctr_nodes:computer", {
-    description = ctrn.S("Computer"),
+    description = ctr.S("Computer"),
     tiles = {
         "computer_side.png",      -- Y-
         "computer_side.png",      -- Y+
         "computer_side.png",      -- X-
         "computer_side.png",      -- X+
         "computer_side.png",      -- Z-
-        "computer_front_new.png", -- Z+
+        "computer_front.png",     -- Z+
     },
     groups = { cracky = 2 },
     paramtype = "light",
@@ -25,36 +27,34 @@ minetest.register_node("ctr_nodes:computer", {
     on_place = minetest.rotate_node, -- rotates the node on place
 })
 
--- just a shortcut
+-- local shortcut for get_modpath
 local modpath = minetest.get_modpath
 
--- check if dependencies are present
-local default_found = modpath("default") ~= nil
-local mesecons_found = modpath("mesecons_luacontroller") ~= nil
-local mcl_core_found = modpath("mcl_core") ~= nil
-local alt_craft = mcl_core_found and not (default_found and mesecons_found)
-
--- if the dependencies are not present, return
-if not default_found and not mesecons_found and not mcl_core_found then
-    ctrn:err("none of the dependencies were found")
-    return
-end
-
-local stone = "default:stone"
-local controller = "mesecons_luacontroller:luacontroller0000"
-
--- make the crafting recipe based on which dependencies are found
-if alt_craft then
-    stone = "mcl_core:stone"
-    controller = "mcl_redstone:redstone_block"
-end
+local stone = nil
+local core = nil
+local glass = nil
 
 -- register crafting recipe
+
+if modpath("default") and modpath("mesecons_luacontroller") then
+    stone = "default:stone"
+    core = "mesecons_luacontroller:luacontroller0000"
+    glass = "default:glass"
+elseif modpath("mcl_core") then
+    stone = "mcl_core:stone"
+    core = "mcl_redstone:redstone_block"
+    glass = "mcl_core:glass_pane"
+end
+
+if not stone or not core or not glass then
+    ctr:err("could not find a crafting recipe")
+else
 minetest.register_craft({
     output = "ctr_nodes:computer",
     recipe = {
-        { stone, stone,      stone },
-        { stone, controller, stone },
+        { stone, glass,      stone },
+        { stone, core, stone },
         { stone, stone,      stone },
     },
 })
+end

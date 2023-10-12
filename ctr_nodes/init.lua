@@ -5,63 +5,42 @@
 -- You should have received a copy of the GNU Affero General Public License along with ComputerTest Redo. If not, see <https://www.gnu.org/licenses/>.
 -- The license is included in the project root under the file labeled LICENSE. All files not otherwise specified under a different license shall be put under this license.
 
+ctr = {}
 
+ctr.mod = {}
 
--- TODO: remove that message
--- hi james.
--- it's nitro.
--- i had a look at the code and because i was free at the moment/
--- i made my changes. boilerplate, better ways to do things, etc.
--- you gave me the repo access, so i've decided that it's more than ok to
--- make good changes.
--- i have also added translations to ukrainian, because why not.
--- i have also changed init.lua, and i'll do a quick explanation how everything
--- is structured.
+ctr.mod.name = minetest.get_current_modname()
+ctr.mod.path = minetest.get_modpath(ctr.mod.name)
 
--- first of all, `ctrn` is a global, it's used to store... well, global things
--- that every script might need.
-
--- `ctrn.mod` contains mod info. it's that simple. take a look at the code.
--- `ctrn.S` is a translation unit. it's used to translate in-game strings, like
--- `... = ctrn.S("yomama")` will be translated according to the `locale/ctr_nodes.<lang>.tr`.
-
--- `ctrn:log,err,warn,act,info,verbose` are all just shortcuts to `minetest.log`.
--- `ctrn.mod.scripts` is an array of relative paths to the scripts. scripts are
--- interpreted automatically in a for loop in an order in which the paths are in
--- the array.
-
--- hopefully you got what i'm saying. imma go sleep. take care.
-
-
-
-ctrn = {}
-
-ctrn.mod = {}
-
-ctrn.mod.name = minetest.get_current_modname()
-ctrn.mod.path = minetest.get_modpath(ctrn.mod.name)
-
-ctrn.S = minetest.get_translator(ctrn.mod.name)
+ctr.S = minetest.get_translator(ctr.mod.name)
 
 -- logging functions
-function ctrn:log(level, text) minetest.log(level, "[ctrn]: " .. text) end
+function ctr:log(level, text) minetest.log(level, "[ctr]: " .. text) end
 
-function ctrn:err(text) ctrn:log("error", text) end
+function ctr:err(text) ctr:log("error", text) end
 
-function ctrn:warn(text) ctrn:log("warning", text) end
+function ctr:warn(text) ctr:log("warning", text) end
 
-function ctrn:act(text) ctrn:log("action", text) end
+function ctr:act(text) ctr:log("action", text) end
 
-function ctrn:info(text) ctrn:log("info", text) end
+function ctr:info(text) ctr:log("info", text) end
 
-function ctrn:verbose(text) ctrn:log("verbose") end
+function ctr:verbose(text) ctr:log("verbose") end
 
--- relative paths to scripts
-ctrn.mod.scripts = {
-    "src/computer_node.lua",
-}
+function load_mod_scripts()
+    local scripts_path =  ctr.mod.path .. "/src/"
+    local script_files_list = minetest.get_dir_list(scripts_path, false)  -- Get list of files in scripts_path
+    local argCount = #script_files_list  -- Store the count of files
 
-for i, v in ipairs(ctrn.mod.scripts) do
-    ctrn:act("loading script '" .. v .. "' (" .. i .. "/" .. #ctrn.mod.scripts .. ")")
-    dofile(ctrn.mod.path .. "/" .. v)
+    for i, v in ipairs(script_files_list) do  -- Iterate over the files
+        local script_name = v:match("(.+).lua")  -- Remove .lua suffix
+        if script_name then  -- Ensure the file is a Lua script
+            ctr:act("loading script '" .. script_name .. "' (" .. i .. "/" .. argCount .. ")")
+            dofile(scripts_path .. v)
+        end
+    end
 end
+
+load_mod_scripts()  -- Call the function with no arguments
+
+

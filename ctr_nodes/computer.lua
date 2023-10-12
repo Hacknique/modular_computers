@@ -3,7 +3,7 @@
 
 -- Load in your textures
 local texture_front = "computer_front.png"
-local texture_rest = "computer_rest.png"
+local texture_rest = "computer_side.png"
 
 -- Register the node
 minetest.register_node("ctr_nodes:computer_old", {
@@ -21,7 +21,7 @@ minetest.register_node("ctr_nodes:computer_old", {
 })
 
 -- Check for required mods
-if minetest.get_modpath("default") and minetest.get_modpath("mesecons_luacontroller") then
+if minetest.global_exists("default") and minetest.global_exists("mesecons_luacontroller") then
     -- Register the crafting recipe for default and mesecons
     minetest.register_craft({
         output = 'ctr_nodes:computer_old',
@@ -31,7 +31,7 @@ if minetest.get_modpath("default") and minetest.get_modpath("mesecons_luacontrol
             { 'default:stone', 'default:stone',                            'default:stone' }
         }
     })
-elseif minetest.get_modpath("mcl_core") then
+elseif minetest.global_exists("mcl_core") then
     -- Register the crafting recipe for mcl_core
     minetest.register_craft({
         output = 'ctr_nodes:computer_old',
