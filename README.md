@@ -1,7 +1,5 @@
 ![banner](.github/assets/banner.png)
 
-A comprehensive implementation of ComputerCraft in Minetest.
-
 # Documentation
 See [Docs](.docs/)
 
