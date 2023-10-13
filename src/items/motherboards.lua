@@ -162,15 +162,35 @@ end
 
 function modular_computers.motherboard.check_exists(id)
     local attached_inventory = modular_computers.motherboard.get_attached_inventory(id)
-    if attached_inventory == {}
+    if attached_inventory == {} then
         return false
     else
         local inventory = minetest.get_inventory({name=attached_inventory})
-        if inventory 
-        -- WIP
+        if inventory then
+            if modular_computers.find_itemstack_with_id(inventory, "id", id) then
+                return true
+            else
+                return false
+            end
         else
             return false
         end
+    end
+end
+
+function modular_computers.motherboard.prune_inventories()
+    -- Get list of saved inventory ids
+    local inventory_ids = modular_computers.motherboard.list_saved_inventories()
+
+    -- Iterate through the saved inventory ids
+    for _, id in ipairs(inventory_ids) do
+        -- Check if the inventory exists
+        if not modular_computers.motherboard.check_exists(id) then
+            -- If the inventory does not exist, delete it
+            modular_computers.motherboard.delete_inventory(id)
+            modular_computers.motherboard.delete_attached_inventory(id)
+        end
+    end
 end
 
 function modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
@@ -187,6 +207,12 @@ end
 function modular_computers.motherboard.get_attached_inventory(id)
     local motherboard_attached_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_attached_inventories")) or {}
     return motherboard_attached_inventories[id]
+end
+
+function modular_computers.motherboard.delete_attached_inventory(id)
+    local motherboard_attached_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_attached_inventories")) or {}
+    motherboard_attached_inventories[id] = nil
+    modular_computers.mod_storage:set_string("motherboard_attached_inventories", minetest.serialize(motherboard_attached_inventories))
 end
 
 
@@ -253,6 +279,16 @@ function modular_computers.register_motherboard(item_name, item_description, ite
                 -- Set the 'id' field in the metadata
                 meta:set_string("id", new_id)
             end
+
+            -- Set Attached Inventory
+            local attached_inventory = player:get_inventory().name
+            if attached_inventory == modular_computers.motherboard.get_attached_inventory(meta:get_string("id")) then
+                minetest.log("action", "Motherboard already in " .. attached_inventory)
+            else
+                modular_computers.motherboard.save_attached_inventory(meta:get_string("id"), attached_inventory)
+                minetest.log("action", "Moved motherboard to " .. attached_inventory)
+            end
+
             local id = meta:get_string("id")
             local formname = "modular_computers:motherboard_"..item_name.."_"..id.."_formspec"
             minetest.log("Showing motherboard formspec")
@@ -309,5 +345,6 @@ minetest.register_on_mods_loaded(function()
 end)
 
 minetest.register_on_shutdown(function()
-    -- WIP
+    -- Gets rid of unused inventories
+    modular_computers.motherboard.prune_inventories()
 end)

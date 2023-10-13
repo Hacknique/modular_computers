@@ -37,3 +37,21 @@ function modular_computers.register_bulk_recipes(item_name, item_recipes)
         end
     end
 end
+
+function modular_computers.find_itemstack_with_metafield(inventory, target_field, target_value)
+    -- Iterate through all lists in the inventory
+    for listname, list in pairs(inventory:get_lists()) do
+        -- Iterate through all item stacks in the list
+        for index, stack in ipairs(list) do
+            -- Get the metadata of the item stack
+            local meta = stack:get_meta()
+            -- Check if the 'id' field in the metadata matches the target id
+            if meta:get_string(target_field) == target_value then
+                -- If a match is found, return the list name, index, and the item stack itself
+                return listname, index, stack
+            end
+        end
+    end
+    -- If no match is found, return nil
+    return nil
+end
