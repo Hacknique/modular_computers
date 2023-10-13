@@ -161,22 +161,33 @@ function modular_computers.motherboard.list_saved_inventories()
 end
 
 function modular_computers.motherboard.check_exists(id)
+    -- Log the id being checked
+    minetest.log("action", "Checking existence for id: " .. tostring(id))
+    
     local attached_inventory = modular_computers.motherboard.get_attached_inventory(id)
-    if attached_inventory == {} then
+    
+    -- Log the attached_inventory value
+    minetest.log("action", "Attached inventory: " .. tostring(attached_inventory))
+    
+    if attached_inventory == nil or attached_inventory == {} then  -- checking for nil or empty table
         return false
     else
-        local inventory = minetest.get_inventory({name=attached_inventory})
+        local inventory = minetest.get_inventory(attached_inventory)
         if inventory then
-            if modular_computers.find_itemstack_with_id(inventory, "id", id) then
+            if modular_computers.find_itemstack_with_metafield(inventory, "id", id) then
                 return true
             else
                 return false
             end
         else
+            -- Log an error if the inventory is nil
+            minetest.log("error", "Failed to get inventory for id: " .. id)
             return false
         end
     end
 end
+
+
 
 function modular_computers.motherboard.prune_inventories()
     -- Get list of saved inventory ids
@@ -228,13 +239,13 @@ function modular_computers.register_motherboard(item_name, item_description, ite
 
         on_put = function(inv, listname, index, stack, player)
             local id = modular_computers.motherboard.get_inventory_id(inv)
-            local attached_inventory = inv:get_location().name
+            local attached_inventory = inv:get_location()
             modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
             minetest.log("action", "Put motherboard in " .. attached_inventory)
         end, 
         on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
             local id = modular_computers.motherboard.get_inventory_id(inv)
-            local attached_inventory = inv:get_location().name
+            local attached_inventory = inv:get_location()
             modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
             minetest.log("action", "Moved motherboard to " .. attached_inventory)
         end,
@@ -280,16 +291,24 @@ function modular_computers.register_motherboard(item_name, item_description, ite
                 meta:set_string("id", new_id)
             end
 
+            -- Get metafield: id
+            local id = meta:get_string("id")
+
             -- Set Attached Inventory
-            local attached_inventory = player:get_inventory().name
-            if attached_inventory == modular_computers.motherboard.get_attached_inventory(meta:get_string("id")) then
-                minetest.log("action", "Motherboard already in " .. attached_inventory)
+            local player_name = player:get_player_name()
+            local attached_inventory = {type="player", name=player_name}
+            minetest.log("action", "Attached inventory: " .. minetest.serialize(attached_inventory))
+            if attached_inventory and type(attached_inventory) == "table" then
+                if attached_inventory ~= modular_computers.motherboard.get_attached_inventory(id) then
+                    minetest.log("action", "Motherboard moved to " .. minetest.serialize(attached_inventory))
+                    modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
+                else
+                    minetest.log("action", "Motherboard already in " .. minetest.serialize(attached_inventory))
+                end
             else
-                modular_computers.motherboard.save_attached_inventory(meta:get_string("id"), attached_inventory)
-                minetest.log("action", "Moved motherboard to " .. attached_inventory)
+                minetest.log("error", "Invalid attached inventory for id: " .. id .. " - " .. minetest.serialize(attached_inventory))
             end
 
-            local id = meta:get_string("id")
             local formname = "modular_computers:motherboard_"..item_name.."_"..id.."_formspec"
             minetest.log("Showing motherboard formspec")
             minetest.show_formspec(player:get_player_name(), formname, modular_computers.motherboards[item_name].formspec(id))
