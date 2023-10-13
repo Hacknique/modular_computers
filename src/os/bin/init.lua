@@ -1,1 +1,1 @@
-dofile(ctr.mod.path .. "/src/os/bin/echo.lua")
+dofile(modular_computers.mod.path .. "/src/os/bin/echo.lua")

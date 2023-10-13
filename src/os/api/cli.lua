@@ -1,3 +1,3 @@
-function ctr.register_command(name, def)
-    ctr.registered_commands[name] = def
+function modular_computers.register_command(name, def)
+    modular_computers.registered_commands[name] = def
 end

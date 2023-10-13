@@ -1,5 +1,5 @@
-ctr.os = {}
+modular_computers.os = {}
 
-dofile(ctr.mod.path .. "/src/os/api/cli.lua")
-dofile(ctr.mod.path .. "/src/os/bin/init.lua")
-dofile(ctr.mod.path .. "/src/os/fs/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
+dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/fs/init.lua")

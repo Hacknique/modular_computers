@@ -6,20 +6,21 @@
 -- The license is included in the project root under the file labeled LICENSE. All files not otherwise specified under a different license shall be put under this license.
 
 -- global mod namespace
-ctr = {}
+modular_computers = {}
 
-ctr.mod = {}
-ctr.mod.name = minetest.get_current_modname()
-ctr.mod.path = minetest.get_modpath(ctr.mod.name)
+modular_computers.mod = {}
+modular_computers.mod.name = minetest.get_current_modname()
+modular_computers.mod.path = minetest.get_modpath(modular_computers.mod.name)
 
-ctr.registered_commands = {}
+modular_computers.registered_commands = {}
 
-ctr.S = minetest.get_translator(ctr.mod.name)
+modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 
 -- Load the scripts
-dofile(ctr.mod.path .. "/src/utilities.lua")
-dofile(ctr.mod.path .. "/src/os/api/cli.lua")
-dofile(ctr.mod.path .. "/src/os/bin/init.lua")
-dofile(ctr.mod.path .. "/src/nodes/computer.lua")
-dofile(ctr.mod.path .. "/src/os/init.lua")
+dofile(modular_computers.mod.path .. "/src/utilities.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
+dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
+dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
+dofile(modular_computers.mod.path .. "/src/items/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/init.lua")
 

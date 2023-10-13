@@ -13,17 +13,17 @@ local terminal_text = ""
 local function formspec(terminal_text)
     return "size[16,10]" ..
         "textarea[0.5,0.5;15,8;terminal_out;" ..
-        ctr.S("Terminal") .. ":;" .. minetest.formspec_escape(terminal_text) .. "]" ..
-        "button[6,9.5;4,1;execute;" .. ctr.S("Execute") .. "]" ..
+        modular_computers.S("Terminal") .. ":;" .. minetest.formspec_escape(terminal_text) .. "]" ..
+        "button[6,9.5;4,1;execute;" .. modular_computers.S("Execute") .. "]" ..
         "field_close_on_enter[terminal_out;false]" ..
         "field_close_on_enter[terminal_in;false]" ..
         "set_focus[terminal_in;true]" ..
-        "field[0.5,9;15,1;terminal_in;"..ctr.S("Input Command")..":;]"
+        "field[0.5,9;15,1;terminal_in;"..modular_computers.S("Input Command")..":;]"
 end
 
 -- register the computer node
-minetest.register_node("computertest_redo:computer", {
-    description = ctr.S("Computer"),
+minetest.register_node("modular_computers:computer", {
+    description = modular_computers.S("Computer"),
     tiles = {
         "computer_side.png",  -- Y-
         "computer_side.png",  -- Y+
@@ -40,48 +40,10 @@ minetest.register_node("computertest_redo:computer", {
     -- Ensure only one item is dropped.
     drop = "",  -- Prevent default drop
     
-    on_place = function(itemstack, placer, pointed_thing)
-        local pos = pointed_thing.above  -- get the position where the node will be placed
-        local player_name = placer:get_player_name()
-        local item_meta = itemstack:get_meta()
-        local node_meta = minetest.get_meta(pos)
-        local id = item_meta:get_string("id")
-
-        -- if id is not set on itemstack, generate a new id
-        if id == "" then
-            id = ctr.generate_id(player_name)
-            item_meta:set_string("id", id)  -- store id in itemstack metadata
-        end
-
-        -- transfer all metadata from item to node
-        for k, v in pairs(item_meta:to_table().fields) do
-            node_meta:set_string(k, v)
-        end
-        
-        minetest.rotate_node(itemstack, placer, pointed_thing)  -- rotate the node on place
-        return itemstack  -- return the modified itemstack
-    end,
-    after_dig_node = function(pos, oldnode, oldmetadata, digger)
-        if not creative.is_enabled_for(digger:get_player_name()) then
-            local itemstack = ItemStack("computertest_redo:computer")
-            local item_meta = itemstack:get_meta()
-            
-            -- transfer all metadata from node to item
-            for k, v in pairs(oldmetadata.fields) do
-                item_meta:set_string(k, v)
-            end
-            
-            -- attempt to merge the itemstack with an existing itemstack in the player's inventory
-            local leftover = digger:get_inventory():add_item("main", itemstack)
-            -- if the itemstack could not be fully merged, add the leftover itemstack to the world
-            if not leftover:is_empty() then
-                minetest.item_drop(leftover, digger, pos)
-            end
-        end
-    end,
+    on_place = minetest.rotate_node,
 
     on_rightclick = function(pos, node, player)
-        local formname = "computertest_redo:computer_formspec"
+        local formname = "modular_computers:computer_formspec"
         minetest.show_formspec(player:get_player_name(), formname, formspec(""))
     end,
 })
@@ -90,7 +52,7 @@ minetest.register_node("computertest_redo:computer", {
 
 -- Handle form submission
 minetest.register_on_player_receive_fields(function(player, formname, fields)
-    if formname == "computertest_redo:computer_formspec" then
+    if formname == "modular_computers:computer_formspec" then
         if fields.execute or fields.key_enter_field == "terminal_in" then
             local player_name = player:get_player_name()
             terminal_text = terminal_text or ""  -- Get existing terminal text
@@ -103,7 +65,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 
             -- Execute the command
             local args = string.split(command, "%s+", false, -1, true)
-            local def = ctr.registered_commands[args[1]]
+            local def = modular_computers.registered_commands[args[1]]
             if def ~= nil then
                 local stdin, stdout, stderr, exit_code = def.func(player, #args-1, unpack(args, 2))
                 if stderr ~= "" then

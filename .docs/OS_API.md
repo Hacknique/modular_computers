@@ -5,5 +5,5 @@
 ### Syntax
 
 ```lua
-ctr.register_command(name, function(...args) return 0 end)
+modular_computers.register_command(name, function(...args) return 0 end)
 ```
