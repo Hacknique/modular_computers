@@ -9,7 +9,7 @@ function modular_computers.motherboard.save_inventory(id)
     
     -- Check if inventory retrieval was successful
     if not inv then
-        minetest.log("error", "Failed to get inventory for id: " .. id)
+        modular_computers:err("Failed to get inventory for id: " .. id)
         return
     end
 
@@ -46,7 +46,7 @@ function modular_computers.motherboard.save_inventory(id)
 
     -- Log the serialized inventory data for debugging
     for listname, list in pairs(inv_data) do
-        minetest.log("action", listname .. ": " .. dump(list))  -- Changed from dump(inv_data) to dump(list)
+        modular_computers:act( listname .. ": " .. dump(list))  -- Changed from dump(inv_data) to dump(list)
     end
 
     -- Get the saved inventories data from mod storage
@@ -61,7 +61,7 @@ end
 
 
 function modular_computers.motherboard.load_inventory(id)
-    minetest.log("action", "Loading inventory for id: " .. id)
+    modular_computers:act( "Loading inventory for id: " .. id)
     
     -- Get the saved inventories data from mod storage
     local saved_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_inventories")) or {}
@@ -71,7 +71,7 @@ function modular_computers.motherboard.load_inventory(id)
         local inv_data = saved_inventories[id]
         if inv_data then
             for listname, list in pairs(inv_data) do
-                minetest.log("action", listname .. ": " .. dump(list))
+                modular_computers:act( listname .. ": " .. dump(list))
             end
 
             local inv = minetest.create_detached_inventory("modular_computers:motherboard_inventory_" .. id, {
@@ -103,15 +103,15 @@ function modular_computers.motherboard.load_inventory(id)
                     inv:set_list(listname, new_list)  -- Set the new list in the inventory
                 end
             else
-                minetest.log("error", "Failed to create detached inventory for id: " .. id)
+                modular_computers:err("Failed to create detached inventory for id: " .. id)
             end
         else
-            minetest.log("error", "Could not deserialize inventory data for id: " .. id)
+            modular_computers:err("Could not deserialize inventory data for id: " .. id)
         end
     else
-        minetest.log("error", "Could not load inventory data for id: " .. id)
+        modular_computers:err("Could not load inventory data for id: " .. id)
     end
-    minetest.log("action", "Finished loading inventory for id: " .. id)
+    modular_computers:act( "Finished loading inventory for id: " .. id)
 end
 
 
@@ -133,7 +133,7 @@ function modular_computers.motherboard.delete_inventory(id)
     if inventory then
         minetest.remove_detached_inventory("modular_computers:motherboard_inventory_"..id)
     else
-        minetest.log("warning", "Attempted to delete a non-existent inventory with id: " .. id)
+        modular_computers:warn("Attempted to delete a non-existent inventory with id: " .. id)
     end
 end
 
@@ -153,7 +153,7 @@ function modular_computers.motherboard.list_saved_inventories()
             table.insert(inventory_ids, id)
         end
     else
-        minetest.log("warning", "No saved inventories found or data is corrupted")
+        modular_computers:warn("No saved inventories found or data is corrupted")
     end
 
     -- Return the list of inventory IDs
@@ -162,12 +162,12 @@ end
 
 function modular_computers.motherboard.check_exists(id)
     -- Log the id being checked
-    minetest.log("action", "Checking existence for id: " .. tostring(id))
+    modular_computers:act( "Checking existence for id: " .. tostring(id))
     
     local attached_inventory = modular_computers.motherboard.get_attached_inventory(id)
     
     -- Log the attached_inventory value
-    minetest.log("action", "Attached inventory: " .. tostring(attached_inventory))
+    modular_computers:act( "Attached inventory: " .. tostring(attached_inventory))
     
     if attached_inventory == nil or attached_inventory == {} then  -- checking for nil or empty table
         return false
@@ -181,7 +181,7 @@ function modular_computers.motherboard.check_exists(id)
             end
         else
             -- Log an error if the inventory is nil
-            minetest.log("error", "Failed to get inventory for id: " .. id)
+            modular_computers:err("Failed to get inventory for id: " .. id)
             return false
         end
     end
@@ -241,13 +241,13 @@ function modular_computers.register_motherboard(item_name, item_description, ite
             local id = modular_computers.motherboard.get_inventory_id(inv)
             local attached_inventory = inv:get_location()
             modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
-            minetest.log("action", "Put motherboard in " .. attached_inventory)
+            modular_computers:act( "Put motherboard in " .. attached_inventory)
         end, 
         on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
             local id = modular_computers.motherboard.get_inventory_id(inv)
             local attached_inventory = inv:get_location()
             modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
-            minetest.log("action", "Moved motherboard to " .. attached_inventory)
+            modular_computers:act( "Moved motherboard to " .. attached_inventory)
         end,
 
         on_secondary_use = function(itemstack, player, pointed_thing)
@@ -297,16 +297,16 @@ function modular_computers.register_motherboard(item_name, item_description, ite
             -- Set Attached Inventory
             local player_name = player:get_player_name()
             local attached_inventory = {type="player", name=player_name}
-            minetest.log("action", "Attached inventory: " .. minetest.serialize(attached_inventory))
+            modular_computers:act( "Attached inventory: " .. minetest.serialize(attached_inventory))
             if attached_inventory and type(attached_inventory) == "table" then
                 if attached_inventory ~= modular_computers.motherboard.get_attached_inventory(id) then
-                    minetest.log("action", "Motherboard moved to " .. minetest.serialize(attached_inventory))
+                    modular_computers:act( "Motherboard moved to " .. minetest.serialize(attached_inventory))
                     modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
                 else
-                    minetest.log("action", "Motherboard already in " .. minetest.serialize(attached_inventory))
+                    modular_computers:act( "Motherboard already in " .. minetest.serialize(attached_inventory))
                 end
             else
-                minetest.log("error", "Invalid attached inventory for id: " .. id .. " - " .. minetest.serialize(attached_inventory))
+                modular_computers:err("Invalid attached inventory for id: " .. id .. " - " .. minetest.serialize(attached_inventory))
             end
 
             local formname = "modular_computers:motherboard_"..item_name.."_"..id.."_formspec"

@@ -75,7 +75,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                 end
             end
 
-            minetest.log("action", "[ctr]:\t" .. "Player:\t" .. player_name .. "Submitted command:\t" .. command)
+            modular_computers.log:act("Player:\t" .. player_name .. "Submitted command:\t" .. command)
             -- Show the updated formspec to the player
             minetest.show_formspec(player_name, formname, formspec(terminal_text))
         end
@@ -108,7 +108,7 @@ elseif modpath("mcl_core") then
 end
 
 if not stone or not core or not glass then
-    minetest.log("error", "[ctr]:\tcould not find a crafting recipe")
+    modular_computers:err("could not find a crafting recipe")
 else
     minetest.register_craft({
         output = "computertest_redo:computer",
