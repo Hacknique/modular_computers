@@ -50,29 +50,25 @@ function modular_computers.motherboard.save_inventory(id)
     end
 
     -- Get the saved inventories data from mod storage
-    local inventory_ids = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories")) or {}
-
-    -- Check if this inventory id has not been saved yet
-    if not inventory_ids[id] then
-        -- Mark this inventory id as saved
-        inventory_ids[id] = true
-
-        -- Save the updated inventories data back to mod storage
-        modular_computers.mod_storage:set_string("saved_inventories", minetest.serialize(inventory_ids))
-    end
-
-    -- Save the actual inventory data to mod storage
-    modular_computers.mod_storage:set_string("inventory_" .. id, minetest.serialize(inv_data))
+    local saved_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories")) or {}
+    
+    -- Save or update the inventory data for this id
+    saved_inventories[id] = inv_data  -- Directly assign the inv_data here
+    
+    -- Save the updated saved inventories data back to mod storage
+    modular_computers.mod_storage:set_string("motherboard_inventories", minetest.serialize(saved_inventories))
 end
 
 
 function modular_computers.motherboard.load_inventory(id)
     minetest.log("action", "Loading inventory for id: " .. id)
-    local serialized_data = modular_computers.mod_storage:get_string("inventory_" .. id)
-
-    if serialized_data and serialized_data ~= "" then
-        local inv_data = minetest.deserialize(serialized_data)
-
+    
+    -- Get the saved inventories data from mod storage
+    local saved_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_inventories")) or {}
+    
+    -- Check if there is saved inventory data for this id
+    if saved_inventories[id] then
+        local inv_data = saved_inventories[id]
         if inv_data then
             for listname, list in pairs(inv_data) do
                 minetest.log("action", listname .. ": " .. dump(list))
@@ -127,6 +123,11 @@ function modular_computers.motherboard.get_inventory_id(inventory)
     return id
 end
 
+function modular_computers.motherboard.get_inventory(id)
+    local inventory = minetest.get_inventory({type="detached", name="modular_computers:motherboard_inventory_"..id})
+    return inventory
+end
+
 function modular_computers.motherboard.delete_inventory(id)
     local inventory = minetest.get_inventory({type="detached", name="modular_computers:motherboard_inventory_"..id})
     if inventory then
@@ -139,7 +140,7 @@ end
 function modular_computers.motherboard.list_saved_inventories()
 
     -- Get saved inventories data from mod storage
-    local saved_inventories_data = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories")) or {}
+    local saved_inventories_data = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_inventories")) or {}
 
     -- Create an empty table to hold the inventory IDs
     local inventory_ids = {}
@@ -159,17 +160,33 @@ function modular_computers.motherboard.list_saved_inventories()
     return inventory_ids
 end
 
--- Function to ensure all necessary detached inventories exist
-function modular_computers.motherboard.ensure_inventories_exist()
-    local inventory_ids = modular_computers.motherboard.list_saved_inventories()
-    for _, id in ipairs(inventory_ids) do
-        -- Check if the inventory already exists
-        local inv = minetest.get_inventory({type="detached", name="modular_computers:motherboard_inventory_" .. id})
-        if not inv then
-            -- If not, create the detached inventory
-            minetest.create_detached_inventory("modular_computers:motherboard_inventory_" .. id, {})
+function modular_computers.motherboard.check_exists(id)
+    local attached_inventory = modular_computers.motherboard.get_attached_inventory(id)
+    if attached_inventory == {}
+        return false
+    else
+        local inventory = minetest.get_inventory({name=attached_inventory})
+        if inventory 
+        -- WIP
+        else
+            return false
         end
-    end
+end
+
+function modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
+    -- Get the saved inventories data from mod storage
+    local motherboard_attached_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_attached_inventories")) or {}
+    
+    -- Save or update the inventory data for this id
+    motherboard_attached_inventories[id] = attached_inventory  -- Directly assign the inv_data here
+    
+    -- Save the updated saved inventories data back to mod storage
+    modular_computers.mod_storage:set_string("motherboard_attached_inventories", minetest.serialize(motherboard_attached_inventories))
+end
+
+function modular_computers.motherboard.get_attached_inventory(id)
+    local motherboard_attached_inventories = minetest.deserialize(modular_computers.mod_storage:get_string("motherboard_attached_inventories")) or {}
+    return motherboard_attached_inventories[id]
 end
 
 
@@ -182,6 +199,20 @@ function modular_computers.register_motherboard(item_name, item_description, ite
     minetest.register_craftitem("modular_computers:motherboard_"..item_name, {
         description = item_description .. " Motherboard",
         inventory_image = item_image,
+
+        on_put = function(inv, listname, index, stack, player)
+            local id = modular_computers.motherboard.get_inventory_id(inv)
+            local attached_inventory = inv:get_location().name
+            modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
+            minetest.log("action", "Put motherboard in " .. attached_inventory)
+        end, 
+        on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+            local id = modular_computers.motherboard.get_inventory_id(inv)
+            local attached_inventory = inv:get_location().name
+            modular_computers.motherboard.save_attached_inventory(id, attached_inventory)
+            minetest.log("action", "Moved motherboard to " .. attached_inventory)
+        end,
+
         on_secondary_use = function(itemstack, player, pointed_thing)
             -- Get the player's name
             local player_name = player:get_player_name()
@@ -270,17 +301,13 @@ modular_computers.register_motherboard("tier_1", "Tier 1", nil, {
     
 end, 1)
 
--- Call the function to ensure all necessary detached inventories exist
-modular_computers.motherboard.ensure_inventories_exist()
-
--- Ensure inventories exist when a player joins the game
-minetest.register_on_joinplayer(function(player)
-    modular_computers.motherboard.ensure_inventories_exist()
-end)
-
 minetest.register_on_mods_loaded(function()
     local inventory_ids = modular_computers.motherboard.list_saved_inventories()
     for _, id in ipairs(inventory_ids) do
         modular_computers.motherboard.load_inventory(id)
     end
+end)
+
+minetest.register_on_shutdown(function()
+    -- WIP
 end)
