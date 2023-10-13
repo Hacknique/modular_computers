@@ -1,5 +1,16 @@
-# textdomain: computertest_redo
-Terminal:=
+# textdomain: modular_computers
+Terminal=
 Execute=
 Input Command=
 Computer=
+Motherboard=
+CPU=
+GPU=
+Hard Drive=
+USB=
+
+
+##### not used anymore #####
+
+# textdomain: computertest_redo
+Terminal:=

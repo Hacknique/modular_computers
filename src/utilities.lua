@@ -1,6 +1,10 @@
+modular_computers.itemstack = {}
+
 function modular_computers.generate_id(player_name)
     local current_time = tostring(os.time())
-    return minetest.get_password_hash(player_name, current_time)
+    local hash = minetest.get_password_hash(player_name, current_time)
+    local sanitized_string = string.gsub(hash, "[^%w]", "")
+    return sanitized_string
 end
 
 function modular_computers.register_bulk_recipes(item_name, item_recipes)

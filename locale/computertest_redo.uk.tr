@@ -1,5 +1,10 @@
-# textdomain: computertest_redo
+# textdomain: modular_computers
 Terminal=Термінал
 Execute=Виконати
 Input Command=Введіть команду
 Computer=Комп'ютер
+Motherboard=
+CPU=
+GPU=
+Hard Drive=
+USB=
