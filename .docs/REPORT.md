@@ -126,19 +126,42 @@ appendices and not here. You should, of course, discuss such deliverables here.
 
 **Legal Considerations Chapter**
 
-A separate chapter on legal considerations should be included, remembering that
-Data Protection Law and Computer Misuse Law could be appropriate here. If there
-are no legal considerations, then you must state this.
+## Using other people copyrighted works
+
+Be careful how you use other peoples works, will we need to do this. Probably
+not.
+
+## What happens if someone finds a vulnerability
+
+- Am i open to lawsuits, from people misusing my mod to execute malware on the
+  server?
+
+- If i implement mitigations, good faith docterine applies.
+
+- License of software does not have Any Warrenty.
+
+- Add disclaimer that this runs code on the server. and while sandboxed, can be
+  broken.
 
 **Ethical Considerations Chapter**
 
-A separate chapter on ethical considerations should be included. Here, issues
-that are ethics related that are not necessarily legal related should be
-discussed. Information on ethics issues in general and specifically
-regulations/procedures in place at CCCU (e.g., those relating to research with
-human participants) relating to your work should be included. If your work in-
-volves people, then there will be ethical issues to consider. If there are no
-ethical considerations, then you must state this
+- Main points
+- Programming environment is sandboxed (safe).
+- Making sure protected areas are respected.
+
+- Educational settings, safegarding.
+
+- Implement access controls, to restrict certain actions
+- Only certain players can access a given computer.
+- Only certain players can access the internet (if enabled).
+- Only certain players can access other computers (if networking enable).
+- Only certain players can access any computer.
+- Restrict internet on blacklist or whitelist.
+
+- Moves responsibility to staff.
+
+- Make companion mod that uses graphical interface for granting/revoking
+  privileges.
 
 **Conclusion Chapter**
 
@@ -163,6 +186,13 @@ should be described. The conclusion chapter:
   .
 
 **References**
+
+Andrew Nitrogenesis <112193680+nitrogenez@users.noreply.github.com>:
+
+Textures Contributed:
+
+- computer_front.png
+- computer_side.png
 
 All incorporated text, diagrams, graphics, pictures, illustrations, figures,
 proofs, tables and any other intellectual property (for example, designs,

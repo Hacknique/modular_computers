@@ -4,35 +4,110 @@ modular_computers.motherboards = {}
 modular_computers.motherboard = {}
 
 function modular_computers.motherboard.save_inventory(id)
+    -- Get the inventory
     local inv = minetest.get_inventory({type="detached", name="modular_computers:motherboard_inventory_" .. id})
+    
+    -- Check if inventory retrieval was successful
+    if not inv then
+        minetest.log("error", "Failed to get inventory for id: " .. id)
+        return
+    end
+
+    -- Initialize a table to hold the inventory data
     local inv_data = {}
+
+    -- Iterate through all lists in the inventory
     for listname, list in pairs(inv:get_lists()) do
-        local list = inv:get_list(listname)
+        -- Create a new list to hold item data
         local new_list = {}
+
+        -- Iterate through all items in the list
         for i, stack in ipairs(list) do
             if stack:is_empty() then
-                goto continue
-            end
+                -- If the stack is empty, set the item data to a empty item
+                new_list[i] = {
+                    wear = 0,
+                    metadata = "",
+                    name = "",
+                    count = 0,
+                    meta = {
+                        
+                    }
+                }
+            else
+            -- Save the item data to the new list
             new_list[i] = stack:to_table()
-            ::continue::
+            end
         end
-        inv_data[listname] = new_list 
+
+        -- Save the new list to the inventory data table
+        inv_data[listname] = new_list
     end
+
+    -- Log the serialized inventory data for debugging
     for listname, list in pairs(inv_data) do
-        minetest.log("action", listname .. ": " .. dump(inv_data))
+        minetest.log("action", listname .. ": " .. dump(list))  -- Changed from dump(inv_data) to dump(list)
     end
-    local serialized_data = minetest.serialize(inv_data)
-    modular_computers.mod_storage:set_string("inventory_" .. id, serialized_data)
+
+    -- Get the saved inventories data from mod storage
+    local inventory_ids = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories")) or {}
+
+    -- Check if this inventory id has not been saved yet
+    if not inventory_ids[id] then
+        -- Mark this inventory id as saved
+        inventory_ids[id] = true
+
+        -- Save the updated inventories data back to mod storage
+        modular_computers.mod_storage:set_string("saved_inventories", minetest.serialize(inventory_ids))
+    end
+
+    -- Save the actual inventory data to mod storage
+    modular_computers.mod_storage:set_string("inventory_" .. id, minetest.serialize(inv_data))
 end
 
+
 function modular_computers.motherboard.load_inventory(id)
+    minetest.log("action", "Loading inventory for id: " .. id)
     local serialized_data = modular_computers.mod_storage:get_string("inventory_" .. id)
+
     if serialized_data and serialized_data ~= "" then
         local inv_data = minetest.deserialize(serialized_data)
+
         if inv_data then
-            local inv = minetest.create_detached_inventory("modular_computers:motherboard_inventory_" .. id, {})
             for listname, list in pairs(inv_data) do
-                inv:set_list(listname, list)
+                minetest.log("action", listname .. ": " .. dump(list))
+            end
+
+            local inv = minetest.create_detached_inventory("modular_computers:motherboard_inventory_" .. id, {
+                -- Callbacks and other settings for the detached inventory
+                on_put = function(inv, listname, index, stack, player)
+                    local id = modular_computers.motherboard.get_inventory_id(inv)
+                    modular_computers.motherboard.save_inventory(id)
+                end,
+                on_take = function(inv, listname, index, stack, player)
+                    local id = modular_computers.motherboard.get_inventory_id(inv)
+                    modular_computers.motherboard.save_inventory(id)
+                end, 
+                on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+                    local id = modular_computers.motherboard.get_inventory_id(inv)
+                    modular_computers.motherboard.save_inventory(id)
+                end,
+            })
+
+            if inv then  -- Check if detached inventory creation was successful
+                -- Set the size and populate the detached inventory with the saved items
+                for listname, list in pairs(inv_data) do
+                    inv:set_size(listname, #list)
+                    
+                    local new_list = {}  -- Create a new list to hold the ItemStacks
+                    for i, stack_data in ipairs(list) do
+                        local stack = ItemStack(stack_data)  -- Create a new ItemStack from the table data
+                        new_list[i] = stack  -- Store the ItemStack in the new list
+                    end
+                    inv:set_list(listname, new_list)  -- Set the new list in the inventory
+                end
+            else
+                minetest.log("error", "Failed to create detached inventory for id: " .. id)
             end
         else
             minetest.log("error", "Could not deserialize inventory data for id: " .. id)
@@ -40,7 +115,11 @@ function modular_computers.motherboard.load_inventory(id)
     else
         minetest.log("error", "Could not load inventory data for id: " .. id)
     end
+    minetest.log("action", "Finished loading inventory for id: " .. id)
 end
+
+
+
 
 function modular_computers.motherboard.get_inventory_id(inventory)
     local name = inventory:get_location().name
@@ -60,7 +139,7 @@ end
 function modular_computers.motherboard.list_saved_inventories()
 
     -- Get saved inventories data from mod storage
-    local saved_inventories_data = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories"))
+    local saved_inventories_data = minetest.deserialize(modular_computers.mod_storage:get_string("saved_inventories")) or {}
 
     -- Create an empty table to hold the inventory IDs
     local inventory_ids = {}
@@ -78,6 +157,19 @@ function modular_computers.motherboard.list_saved_inventories()
 
     -- Return the list of inventory IDs
     return inventory_ids
+end
+
+-- Function to ensure all necessary detached inventories exist
+function modular_computers.motherboard.ensure_inventories_exist()
+    local inventory_ids = modular_computers.motherboard.list_saved_inventories()
+    for _, id in ipairs(inventory_ids) do
+        -- Check if the inventory already exists
+        local inv = minetest.get_inventory({type="detached", name="modular_computers:motherboard_inventory_" .. id})
+        if not inv then
+            -- If not, create the detached inventory
+            minetest.create_detached_inventory("modular_computers:motherboard_inventory_" .. id, {})
+        end
+    end
 end
 
 
@@ -122,10 +214,10 @@ function modular_computers.register_motherboard(item_name, item_description, ite
                     
                 })
                 
-                inv:set_size("cpu", tier_number)
-                inv:set_size("gpu", tier_number)
-                inv:set_size("hdd", tier_number)
-                inv:set_size("usb", tier_number)
+                inv:set_size("cpu", 1)
+                inv:set_size("gpu", 1)
+                inv:set_size("hdd", 1)
+                inv:set_size("usb", 1)
                 
                 -- Set the 'id' field in the metadata
                 meta:set_string("id", new_id)
@@ -177,6 +269,14 @@ modular_computers.register_motherboard("tier_1", "Tier 1", nil, {
     "listring[]"
     
 end, 1)
+
+-- Call the function to ensure all necessary detached inventories exist
+modular_computers.motherboard.ensure_inventories_exist()
+
+-- Ensure inventories exist when a player joins the game
+minetest.register_on_joinplayer(function(player)
+    modular_computers.motherboard.ensure_inventories_exist()
+end)
 
 minetest.register_on_mods_loaded(function()
     local inventory_ids = modular_computers.motherboard.list_saved_inventories()
