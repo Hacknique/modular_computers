@@ -14,7 +14,7 @@ modular_computers.mod = {}
 modular_computers.mod.name = minetest.get_current_modname()
 modular_computers.mod.path = minetest.get_modpath(modular_computers.mod.name)
 
-modular_computers.registered_commands = {}
+modular_computers.os.registered_commands = {}
 
 modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 
@@ -26,4 +26,3 @@ dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
 dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
 dofile(modular_computers.mod.path .. "/src/items/init.lua")
 dofile(modular_computers.mod.path .. "/src/os/init.lua")
-

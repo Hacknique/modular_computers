@@ -63,7 +63,7 @@ minetest.register_on_player_receive_fields(
 
                 -- Execute the command
                 local args = string.split(command, "%s+", false, -1, true)
-                local def = modular_computers.registered_commands[args[1]]
+                local def = modular_computers.internal.command.registered_commands[args[1]]
                 if def ~= nil then
                     local stdin, stdout, stderr, exit_code = def.func(player,
                                                                       #args - 1,
