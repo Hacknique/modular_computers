@@ -20,6 +20,7 @@ modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 
 -- Load the scripts
 dofile(modular_computers.mod.path .. "/src/utilities.lua")
+dofile(modular_computers.mod.path .. "/src/item_tracking.lua")
 dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
 dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
 dofile(modular_computers.mod.path .. "/src/nodes/init.lua")

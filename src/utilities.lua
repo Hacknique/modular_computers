@@ -43,6 +43,7 @@ function modular_computers.find_itemstack_with_metafield(inventory, target_field
     for listname, list in pairs(inventory:get_lists()) do
         -- Iterate through all item stacks in the list
         for index, stack in ipairs(list) do
+            modular_computers:act("Metadata for itemstack in " .. listname .. ": " .. minetest.serialize(stack:get_meta():to_table()))
             -- Get the metadata of the item stack
             local meta = stack:get_meta()
             -- Check if the 'id' field in the metadata matches the target id
