@@ -8,14 +8,13 @@
 local terminal_text = ""
 
 local function formspec(terminal_text)
-    return "size[16,10]" .. "textarea[0.5,0.5;15,8;terminal_out;" ..
-               modular_computers.S("Terminal") .. ":;" ..
-               minetest.formspec_escape(terminal_text) .. "]" ..
-               "button[6,9.5;4,1;execute;" .. modular_computers.S("Execute") ..
-               "]" .. "field_close_on_enter[terminal_out;false]" ..
-               "field_close_on_enter[terminal_in;false]" ..
-               "set_focus[terminal_in;true]" .. "field[0.5,9;15,1;terminal_in;" ..
-               modular_computers.S("Input Command") .. ":;]"
+    return "size[16,10]" ..
+    "textarea[0.5,0.5;15,8;terminal_out;" .. modular_computers.S("Terminal") .. ":;" .. minetest.formspec_escape(terminal_text) .. "]" ..
+    "button[6,9.5;4,1;execute;" .. modular_computers.S("Execute") .. "]" ..
+    "field_close_on_enter[terminal_out;false]" ..
+    "field_close_on_enter[terminal_in;false]" ..
+    "set_focus[terminal_in;true]" ..
+    "field[0.5,9;15,1;terminal_in;" .. modular_computers.S("Input Command") .. ":;]"
 end
 
 -- register the computer node
@@ -65,11 +64,7 @@ minetest.register_on_player_receive_fields(
                 local args = string.split(command, "%s+", false, -1, true)
                 local def = modular_computers.registered_commands[args[1]]
                 if def ~= nil then
-                    local stdin, stdout, stderr, exit_code = def.func(player,
-                                                                      #args - 1,
-                                                                      unpack(
-                                                                          args,
-                                                                          2))
+                    local stdin, stdout, stderr, exit_code = def.func(player,#args - 1,unpack(args,2))
                     if stderr ~= "" then
                         terminal_text = terminal_text .. stderr
                     elseif stdout ~= "" then
@@ -113,9 +108,12 @@ if not stone or not core or not glass then
     modular_computers:err("could not find a crafting recipe")
 else
     minetest.register_craft({
-        output = "computertest_redo:computer",
+        output = "modular_computers:computer",
         recipe = {
-            {stone, glass, stone}, {stone, core, stone}, {stone, stone, stone}
+            {stone, glass, stone},
+            {stone, core, stone},
+            {stone, stone, stone}
         }
     })
+    modular_computers:act("registered crafting recipe")
 end
