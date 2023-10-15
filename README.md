@@ -1,4 +1,4 @@
-![banner](.github/assets/banner.png)
+![banner](.github/assets/github_banner.png)
 
 # Documentation
 See [Docs](.docs/)
