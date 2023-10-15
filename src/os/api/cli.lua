@@ -23,24 +23,20 @@ function modular_computers.command.register(name, callback)
     modular_computers.internal.command.registered_commands[name] = callback
 end
 
-function modular_computers.command.execute(...)
-    local args = { ... }
-    local def = modular_computers.internal.command.registered_commands[args[1]]
-    local terminal_text = ""
-    if def ~= nil then
-        local stdin, stdout, stderr, exit_code = def.func(#args - 1, unpack(args, 2))
-        if stdin ~= "" then
-            terminal_text = terminal_text .. stdin
+function modular_computers.command.execute(env, argc, argv)
+    local def = modular_computers.internal.command.registered_commands[argv[0]]
+    local f = (def or {}).func
+    if argv[0] == nil then
+        f = function()
+            return 0
         end
-        if stderr ~= "" then
-            terminal_text = terminal_text .. stderr
-        elseif stdout ~= "" then
-            terminal_text = terminal_text .. stdout
-        end
-        if exit_code ~= 0 then
-            terminal_text = terminal_text .. modular_computers.S("ERROR: Command exited with code: ")
-                .. exit_code .. "\n"
+    elseif f == nil then
+        local S = modular_computers.S
+        f = function()
+            io.stderr:write(S("Command not found: @1", argv[0]) .. "\n")
+            return 127
         end
     end
-    return terminal_text
+    setfenv(f, env)
+    return f(argc, argv)
 end
