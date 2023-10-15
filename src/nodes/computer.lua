@@ -75,7 +75,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                 end
             end
 
-            modular_computers.log:act("Player:\t" .. player_name .. "Submitted command:\t" .. command)
+            modular_computers:act("Player:\t" .. player_name .. "Submitted command:\t" .. command)
             -- Show the updated formspec to the player
             minetest.show_formspec(player_name, formname, formspec(terminal_text))
         end
