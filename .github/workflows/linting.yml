@@ -1,0 +1,21 @@
+name: Linting
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+
+    container:
+      image: pipelinecomponents/luacheck:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run LuaCheck
+        run: luacheck .
