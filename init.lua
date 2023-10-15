@@ -18,22 +18,18 @@
 
 -- global mod namespace
 modular_computers = {}
+modular_computers.internal = {}
+modular_computers.mod = {}
 
 modular_computers.mod_storage = minetest.get_mod_storage()
 
-modular_computers.mod = {}
 modular_computers.mod.name = minetest.get_current_modname()
 modular_computers.mod.path = minetest.get_modpath(modular_computers.mod.name)
-
-modular_computers.registered_commands = {}
 
 modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 
 -- Load the scripts
 dofile(modular_computers.mod.path .. "/src/utilities.lua")
-dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/init.lua")
 dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
 dofile(modular_computers.mod.path .. "/src/items/init.lua")
-dofile(modular_computers.mod.path .. "/src/os/init.lua")
-
