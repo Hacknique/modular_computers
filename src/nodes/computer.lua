@@ -93,10 +93,10 @@ minetest.register_on_player_receive_fields(
                 -- Execute the command
                 local args = string.split(command, "%s+", false, -1, true)
                 args[0] = table.remove(args, 1)
-                local stdin = modular_computers.os.dummy_file
-                local stdout = modular_computers.os.string_output()
-                local stderr = modular_computers.os.string_output()
-                local iolib, printfunc = modular_computers.os.luaopen_io(stdin, stdout, stderr)
+                local stdin = modular_computers.internal.dummy_file
+                local stdout = modular_computers.internal.string_output()
+                local stderr = modular_computers.internal.string_output()
+                local iolib, printfunc = modular_computers.internal.luaopen_io(stdin, stdout, stderr)
                 local env = {
                     io = iolib,
                     print = printfunc,

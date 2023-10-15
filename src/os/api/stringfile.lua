@@ -29,8 +29,8 @@ function new_string_output()
 end
 
 setmetatable(string_output, {
-    __index = modular_computers.os.dummy_output,
+    __index = modular_computers.internal.dummy_output,
     __call = function(_, ...) return new_string_output(...) end,
 })
 
-modular_computers.os.string_output = string_output
+modular_computers.internal.string_output = string_output

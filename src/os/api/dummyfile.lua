@@ -39,6 +39,6 @@ dummy_input.write = dummy_bad_fd
 
 dummy_output.read = dummy_bad_fd
 
-modular_computers.os.dummy_file = dummy_file
-modular_computers.os.dummy_input = dummy_input
-modular_computers.os.dummy_output = dummy_output
+modular_computers.internal.dummy_file = dummy_file
+modular_computers.internal.dummy_input = dummy_input
+modular_computers.internal.dummy_output = dummy_output

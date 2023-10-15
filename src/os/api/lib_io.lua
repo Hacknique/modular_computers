@@ -1,4 +1,4 @@
-function modular_computers.os.luaopen_io(stdin, stdout, stderr)
+function modular_computers.internal.luaopen_io(stdin, stdout, stderr)
     local lib = {
         stdin = stdin,
         stdout = stdout,
