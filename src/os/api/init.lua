@@ -16,8 +16,4 @@
     Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
 ]]
 
-modular_computers.os = {}
-
-dofile(modular_computers.mod.path .. "/src/os/api/init.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
-dofile(modular_computers.mod.path .. "/src/os/fs/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
