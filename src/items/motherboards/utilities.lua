@@ -35,7 +35,7 @@ function modular_computers.motherboard.get_itemstack_from_id(id)
         if inventory then
             local itemstack = modular_computers.find_itemstack_with_metafield(
                                   inventory, "id", id)[3]
-            modular_computers:act("Itemstack found: " .. tostring(found))
+            modular_computers:act("Itemstack found: " .. minetest.serialize(itemstack:to_table()))
             if itemstack then
                 return itemstack
             else

@@ -29,17 +29,17 @@ function modular_computers.register_motherboard(item_name, item_description,
             -- end,
 
             on_put = function(inv, listname, index, stack, player)
-                local id = modular_computers.motherboard.get_inventory_id(inv)
-                modular_computers.motherboard.save_inventory(id)
+                local inventory_id = modular_computers.motherboard.get_inventory_id(inv)
+                modular_computers.motherboard.save_inventory(inventory_id)
             end,
             on_take = function(inv, listname, index, stack, player)
-                local id = modular_computers.motherboard.get_inventory_id(inv)
-                modular_computers.motherboard.save_inventory(id)
+                local inventory_id = modular_computers.motherboard.get_inventory_id(inv)
+                modular_computers.motherboard.save_inventory(inventory_id)
             end,
             on_move = function(inv, from_list, from_index, to_list, to_index,
                                count, player)
-                local id = modular_computers.motherboard.get_inventory_id(inv)
-                modular_computers.motherboard.save_inventory(id)
+                local inventory_id = modular_computers.motherboard.get_inventory_id(inv)
+                modular_computers.motherboard.save_inventory(inventory_id)
             end
 
         }
@@ -50,17 +50,17 @@ function modular_computers.register_motherboard(item_name, item_description,
         stack_max = 1,
 
         on_put = function(inv, listname, index, stack, player)
-            local id = modular_computers.motherboard.get_inventory_id(inv)
+            local inventory_id = modular_computers.motherboard.get_inventory_id(inv)
             local attached_inventory = inv:get_location()
-            modular_computers.motherboard.save_attached_inventory(id,
+            modular_computers.motherboard.save_attached_inventory(inventory_id,
                                                                   attached_inventory)
             modular_computers:act("Put motherboard in " .. attached_inventory)
         end,
         on_move = function(inv, from_list, from_index, to_list, to_index, count,
                            player)
-            local id = modular_computers.motherboard.get_inventory_id(inv)
+            local inventory_id = modular_computers.motherboard.get_inventory_id(inv)
             local attached_inventory = inv:get_location()
-            modular_computers.motherboard.save_attached_inventory(id,
+            modular_computers.motherboard.save_attached_inventory(inventory_id,
                                                                   attached_inventory)
             modular_computers:act("Moved motherboard to " .. attached_inventory)
         end,
@@ -106,15 +106,14 @@ function modular_computers.register_motherboard(item_name, item_description,
                     meta = {id = id}
                 }, function(name)
                     minetest.log("action", "Attached to " .. name)
-                    local inv = modular_computers.inventory_from_string(name)
-                    modular_computers.save_attached_inventory(id, inv)
+                    local tracked_inventory = modular_computers.inventory_from_string(name)
+                    modular_computers.save_attached_inventory(id, tracked_inventory)
                 end)
             else
                 id = meta:get_string("id")
             end
 
             -- Set Attached Inventory
-            local player_name = player:get_player_name()
             local attached_inventory = {type = "player", name = player_name}
             modular_computers:act("Attached inventory: " ..
                                       minetest.serialize(attached_inventory))
@@ -150,7 +149,7 @@ function modular_computers.register_motherboard(item_name, item_description,
                 inv:set_size("usb", 1)
 
                 modular_computers.motherboards[item_name].formspec =
-                    function(id)
+                    function(_)
                         return "size[10,3]" .. "bgcolor[#FF0000]" ..
                                    "label[1,1;Inventory was reset as the motherboard was detached.]" ..
                                    "label[1,1.5;Right-click again to access a new inventory.]"

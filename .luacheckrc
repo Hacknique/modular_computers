@@ -3,6 +3,7 @@ allow_defined_top = true
 
 globals = {
     "minetest",
+    "item_tracking"
 }
 
 read_globals = {

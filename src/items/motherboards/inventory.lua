@@ -94,20 +94,20 @@ function modular_computers.motherboard.load_inventory(id)
                             "modular_computers:motherboard_inventory_" .. id, {
                     -- Callbacks and other settings for the detached inventory
                     on_put = function(inv, listname, index, stack, player)
-                        local id = modular_computers.motherboard
+                        local inventory_id = modular_computers.motherboard
                                        .get_inventory_id(inv)
-                        modular_computers.motherboard.save_inventory(id)
+                        modular_computers.motherboard.save_inventory(inventory_id)
                     end,
                     on_take = function(inv, listname, index, stack, player)
-                        local id = modular_computers.motherboard
+                        local inventory_id = modular_computers.motherboard
                                        .get_inventory_id(inv)
-                        modular_computers.motherboard.save_inventory(id)
+                        modular_computers.motherboard.save_inventory(inventory_id)
                     end,
                     on_move = function(inv, from_list, from_index, to_list,
                                        to_index, count, player)
-                        local id = modular_computers.motherboard
+                        local inventory_id = modular_computers.motherboard
                                        .get_inventory_id(inv)
-                        modular_computers.motherboard.save_inventory(id)
+                        modular_computers.motherboard.save_inventory(inventory_id)
                     end
                 })
 
@@ -124,7 +124,7 @@ function modular_computers.motherboard.load_inventory(id)
                     inv:set_list(listname, new_list) -- Set the new list in the inventory
                 end
 
-                tier_number = modular_computers.motherboard.get_tier(id)
+                local tier_number = modular_computers.motherboard.get_tier(id)
                 if tier_number then
                     modular_computers:act(
                         "Tracking Motherboard" .. " With ID " .. id)
@@ -135,9 +135,9 @@ function modular_computers.motherboard.load_inventory(id)
                         meta = {id = id}
                     }, function(name)
                         minetest.log("action", "Attached to " .. name)
-                        local inv =
+                        local tracked_inventory =
                             modular_computers.inventory_from_string(name)
-                        modular_computers.save_attached_inventory(id, inv)
+                        modular_computers.save_attached_inventory(id, tracked_inventory)
                     end)
                 end
             else

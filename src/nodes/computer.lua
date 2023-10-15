@@ -17,11 +17,10 @@
     Copyright (c) 2023 nitrogenez
 ]]
 
-local terminal_text = ""
-
 local function formspec(terminal_text)
     return "size[16,10]" ..
-    "textarea[0.5,0.5;15,8;terminal_out;" .. modular_computers.S("Terminal") .. ":;" .. minetest.formspec_escape(terminal_text) .. "]" ..
+    "textarea[0.5,0.5;15,8;terminal_out;" .. modular_computers.S("Terminal") .. ":;" ..
+    minetest.formspec_escape(terminal_text) .. "]" ..
     "button[6,9.5;4,1;execute;" .. modular_computers.S("Execute") .. "]" ..
     "field_close_on_enter[terminal_out;false]" ..
     "field_close_on_enter[terminal_in;false]" ..
@@ -61,6 +60,7 @@ minetest.register_node("modular_computers:computer", {
 -- Handle form submission
 minetest.register_on_player_receive_fields(
     function(player, formname, fields)
+        local terminal_text = ""
         if formname == "modular_computers:computer_formspec" then
             if fields.execute or fields.key_enter_field == "terminal_in" then
                 local player_name = player:get_player_name()
@@ -77,10 +77,17 @@ minetest.register_on_player_receive_fields(
                 local def = modular_computers.internal.command.registered_commands[args[1]]
                 if def ~= nil then
                     local stdin, stdout, stderr, exit_code = def.func(player,#args - 1,unpack(args,2))
+                    if stdin ~= "" then
+                        terminal_text = terminal_text .. stdin
+                    end
                     if stderr ~= "" then
                         terminal_text = terminal_text .. stderr
                     elseif stdout ~= "" then
                         terminal_text = terminal_text .. stdout
+                    end
+                    if exit_code ~= 0 then
+                        terminal_text = terminal_text .. modular_computers.S("ERROR: Command exited with code: ")
+                        .. exit_code .. "\n"
                     end
                 end
 
