@@ -15,15 +15,15 @@
 
 #### User Story 2:
 
-| ID--DEV-2           | As a Developer, I want to implement ROM OS with standard OS functions.   |
+| ID--DEV-2           | As a Developer, I want to implement an OS module with standard OS functions.   |
 | ------------------- | ------------------------------------------------------------------------ |
 | Description         | - **User:** Developer                                                    |
-|                     | - **Functionality:** ROM OS                                              |
+|                     | - **Functionality:** OS                                              |
 |                     | - **Goal:** Enable writing, running commands, and basic shell utilities. |
-| Acceptance Criteria | 1. Create a ROM OS module.                                               |
+| Acceptance Criteria | 1. Create a OS module.                                               |
 |                     | 2. Implement standard OS functions within the module.                    |
 | Notes               |                                                                          |
-| Tasks               | - [ ] Design and create assets for the ROM OS interface.                 |
+| Tasks               | - [ ] Design and create assets for the OS interface.                 |
 |                     | - [ ] Implement writing and command-running functionalities.             |
 
 #### User Story 3:
@@ -53,29 +53,31 @@
 
 #### User Story 5:
 
-| ID--DEV-5           | As a Developer, I want to implement a Disk drive with the ability to hold 1 floppy disk including a formspec. |
+| ID--DEV-5           | As a Developer, I want to implement a Motherboard to hold the computer parts (including Hard Drive). |
 | ------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Description         | - **User:** Developer                                                                                         |
 |                     | - **Functionality:** Disk Drive                                                                               |
 |                     | - **Goal:** Enable storage and interaction of a floppy disk through a Disk Drive with a formspec.             |
-| Acceptance Criteria | 1. Create a Disk Drive module.                                                                                |
-|                     | 2. Implement floppy disk interaction functionality within the module.                                         |
+| Acceptance Criteria | 1. Create a Motherboard module.                                                                                |
+|                     | 2. Implement Item Tracking and Pruning of orphaned motherboard inventories.
+|                     | 3. Create, CPU, GPU, RAM, Hard Disk and USB slots and their items |
+|                     |                                                                                                              |
 | Notes               |                                                                                                               |
 | Tasks               | - [ ] Design and create assets for the Disk Drive.                                                            |
 |                     | - [ ] Implement the Disk Drive within the mod.                                                                |
 
 #### User Story 6:
 
-| ID--DEV-6           | As a Developer, I want to implement floppy disks of various colors with the ability to name them via the computer. |
+| ID--DEV-6           | As a Developer, I want to implement USB Drives of various colors with the ability to name them via the computer. |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Description         | - **User:** Developer                                                                                              |
-|                     | - **Functionality:** Floppy Disk                                                                                   |
-|                     | - **Goal:** Enable naming and color variation for floppy disks.                                                    |
-| Acceptance Criteria | 1. Create a Floppy Disk module.                                                                                    |
+|                     | - **Functionality:** USB Stick                                                                                   |
+|                     | - **Goal:** Enable naming and color variation for USB Drive.                                                    |
+| Acceptance Criteria | 1. Create a USB Drive module.                                                                                    |
 |                     | 2. Implement naming and color variation functionalities within the module.                                         |
 | Notes               |                                                                                                                    |
-| Tasks               | - [ ] Design and create assets for the floppy disks.                                                               |
-|                     | - [ ] Implement the Floppy Disk within the mod.                                                                    |
+| Tasks               | - [ ] Design and create assets for the USB Drives.                                                               |
+|                     | - [ ] Implement the USB Drives within the mod.                                                                    |
 
 #### User Story 7:
 
@@ -106,28 +108,28 @@
 
 #### User Story 1:
 
-| ID--DEV-9           | As a Developer, I want to implement advanced computers with enhanced capabilities. |
+| ID--DEV-9           | As a Developer, I want to implement graphics in the computer. |
 | ------------------- | ---------------------------------------------------------------------------------- |
 | Description         | - **User:** Developer                                                              |
 |                     | - **Functionality:** Advanced Computers                                            |
 |                     | - **Goal:** Provide graphical interface within the formspec of the terminal.       |
-| Acceptance Criteria | 1. Design and create advanced computers module.                                    |
+| Acceptance Criteria | 1. Design and create graphics module.                                    |
 |                     | 2. Implement graphical interface within the module.                                |
 | Notes               |                                                                                    |
-| Tasks               | - [ ] Design and create assets for advanced computers and monitors.                |
+| Tasks               | - [ ] Design and create assets for computers graphics.                |
 |                     | - [ ] Implement the module within the mod.                                         |
 
 #### User Story 2:
 
-| ID--DEV-10          | As a Developer, I want to implement advanced monitors with the capability to display graphics. |
+| ID--DEV-10          | As a Developer, I want to implement monitors with the capability to display graphics. |
 | ------------------- | ---------------------------------------------------------------------------------------------- |
 | Description         | - **User:** Developer                                                                          |
-|                     | - **Functionality:** Advanced Monitors                                                         |
-|                     | - **Goal:** Enable graphical display on advanced monitors.                                     |
-| Acceptance Criteria | 1. Design and create advanced monitors module.                                                 |
+|                     | - **Functionality:** Monitors with Graphics                                                         |
+|                     | - **Goal:** Enable graphical display on monitors.                                     |
+| Acceptance Criteria | 1. Design and create monitors module.                                                 |
 |                     | 2. Implement graphical display functionality within the module.                                |
 | Notes               |                                                                                                |
-| Tasks               | - [ ] Design and create assets for advanced monitors.                                          |
+| Tasks               | - [ ] Design and create assets for monitors UI.                                          |
 |                     | - [ ] Implement the module within the mod.                                                     |
 
 #### User Story 3:
@@ -185,31 +187,19 @@
 
 #### User Story 1:
 
-| ID--DEV-15          | As a Developer, I want to add standard turtles that can move and have 2 peripheral slots. |
+| ID--DEV-15          | As a Developer, I want to add turtles that can move and have x slots, based on the tier of motherboard. |
 | ------------------- | ----------------------------------------------------------------------------------------- |
 | Description         | - **User:** Developer                                                                     |
 |                     | - **Functionality:** Standard Turtles                                                     |
-|                     | - **Goal:** Enable movement and peripheral interaction for standard turtles.              |
+|                     | - **Goal:** Enable movement and peripheral interaction for turtles.              |
 | Acceptance Criteria | 1. Create standard turtles module.                                                        |
 |                     | 2. Implement movement and peripheral functionalities within the module.                   |
 | Notes               |                                                                                           |
-| Tasks               | - [ ] Design and create assets for standard turtles.                                      |
+| Tasks               | - [ ] Design and create assets for turtles.                                      |
 |                     | - [ ] Implement the module within the mod.                                                |
 
+
 #### User Story 2:
-
-| ID--DEV-16          | As a Developer, I want to add advanced turtles that have 4 peripheral slots. |
-| ------------------- | ---------------------------------------------------------------------------- |
-| Description         | - **User:** Developer                                                        |
-|                     | - **Functionality:** Advanced Turtles                                        |
-|                     | - **Goal:** Enable more peripheral interaction for advanced turtles.         |
-| Acceptance Criteria | 1. Create advanced turtles module.                                           |
-|                     | 2. Implement peripheral functionalities within the module.                   |
-| Notes               |                                                                              |
-| Tasks               | - [ ] Design and create assets for advanced turtles.                         |
-|                     | - [ ] Implement the module within the mod.                                   |
-
-#### User Story 3:
 
 | ID--DEV-17          | As a Developer, I want to add peripherals for mining and wireless modem.  |
 | ------------------- | ------------------------------------------------------------------------- |
@@ -222,7 +212,7 @@
 | Tasks               | - [ ] Design and create assets for mining and wireless modem peripherals. |
 |                     | - [ ] Implement the module within the mod.                                |
 
-#### User Story 4:
+#### User Story 3:
 
 | ID--DEV-18          | As a Developer, I want to add an advanced wireless modem with unlimited or variable range. |
 | ------------------- | ------------------------------------------------------------------------------------------ |
