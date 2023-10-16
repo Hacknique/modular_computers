@@ -3,11 +3,16 @@ name: Linting
 on:
   push:
     branches: [main]
+    paths:
+      - '**.lua'
   pull_request:
     branches: [main]
+    paths:
+      - '**.lua'
 
 jobs:
   luacheck:
+    name: Lint tbe code using luacheck
     runs-on: ubuntu-latest
 
     container:
