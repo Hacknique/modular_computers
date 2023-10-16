@@ -28,7 +28,7 @@ function modular_computers.command.execute(...)
     local def = modular_computers.internal.command.registered_commands[args[1]]
     local terminal_text = ""
     if def ~= nil then
-        local stdin, stdout, stderr, exit_code = def.func(player, #args - 1, unpack(args, 2))
+        local stdin, stdout, stderr, exit_code = def.func(#args - 1, unpack(args, 2))
         if stdin ~= "" then
             terminal_text = terminal_text .. stdin
         end

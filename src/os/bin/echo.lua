@@ -17,7 +17,7 @@
 ]]
 
 modular_computers.command.register("echo", {
-    func = function(player, argc, ...)
+    func = function(argc, ...)
         return "", table.concat({...}, " ") .. "\n", "", 0
     end,
 })
