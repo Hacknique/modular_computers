@@ -18,6 +18,15 @@
 
 modular_computers.itemstack = {}
 
+
+modular_computers.contexts = {}
+
+function modular_computers.get_context(name)
+    local context = modular_computers.contexts[name] or {}
+    modular_computers.contexts[name] = context
+    return context
+end
+
 function modular_computers.inventory_from_player_name(player_name)
     local player = minetest.get_player_by_name(player_name)
 
@@ -27,14 +36,13 @@ function modular_computers.inventory_from_player_name(player_name)
             return inventory
         else
             minetest.log("error",
-                         "Failed to get inventory for player " .. player_name)
+                "Failed to get inventory for player " .. player_name)
             return nil
         end
     else
         minetest.log("error", "Player " .. player_name .. " not found")
         return nil
     end
-
 end
 
 function modular_computers.inventory_from_string(inv_string)
@@ -54,14 +62,13 @@ function modular_computers.inventory_from_string(inv_string)
         y = tonumber(y)
         z = tonumber(z)
 
-        local meta = minetest.get_meta({x = x, y = y, z = z})
+        local meta = minetest.get_meta({ x = x, y = y, z = z })
         local inventory = meta:get_inventory()
         return inventory
-
     elseif string.match(inv_string, "^detached:") then
         local pattern = "^detached:(.*)$"
         local name = string.match(inv_string, pattern)
-        return minetest.get_inventory({type = "detached", name = name})
+        return minetest.get_inventory({ type = "detached", name = name })
     else
         return nil
     end
@@ -89,8 +96,8 @@ function modular_computers.register_bulk_recipes(item_name, item_recipes)
         local all_mods_loaded = true
         for _, mod in ipairs(mods) do
             if not minetest.get_modpath(mod) then -- Corrected function name from modpath to get_modpath
-                all_mods_loaded = false -- If any required mod is not loaded, set flag to false
-                break -- No need to check further mods if one is missing
+                all_mods_loaded = false           -- If any required mod is not loaded, set flag to false
+                break                             -- No need to check further mods if one is missing
             end
         end
 
@@ -108,15 +115,14 @@ end
 function modular_computers.find_itemstack_with_metafield(inventory,
                                                          target_field,
                                                          target_value)
-
     -- Iterate through all lists in the inventory
     for listname, list in pairs(inventory:get_lists()) do
         -- Iterate through all item stacks in the list
         for index, stack in ipairs(list) do
             modular_computers:act("Metadata for itemstack in " .. listname ..
-                                      ": " ..
-                                      minetest.serialize(
-                                          stack:get_meta():to_table()))
+                ": " ..
+                minetest.serialize(
+                    stack:get_meta():to_table()))
             -- Get the metadata of the item stack
             local meta = stack:get_meta()
             -- Check if the 'id' field in the metadata matches the target id
