@@ -55,7 +55,8 @@ file you edited, in the format.
 
 ### For All Assets
 
-Add copyright to the top of `LICENSE` file inside the textures folder.
+Add copyright to the top of `LICENSE` file inside the textures folder for textures.
+Add copyright to the top of `LICENSE` file inside the .github/assets folder for other assets.
 
 ### Documentation
 
