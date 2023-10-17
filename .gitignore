@@ -41,3 +41,11 @@ luac.out
 
 # Old MT translations
 *.tr.old
+
+# For python projects
+.venv
+*.pyc
+__pycache__
+
+# For REFERENCES.md report
+reports/
