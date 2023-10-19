@@ -17,3 +17,6 @@
 ]]
 
 dofile(modular_computers.mod.path .. "/src/os/api/cli.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/dummyfile.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/stringfile.lua")
+dofile(modular_computers.mod.path .. "/src/os/api/lib_io.lua")

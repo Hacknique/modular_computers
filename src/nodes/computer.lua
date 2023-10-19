@@ -92,11 +92,29 @@ minetest.register_on_player_receive_fields(
 
                 -- Execute the command
                 local args = string.split(command, "%s+", false, -1, true)
-                terminal_text = terminal_text .. modular_computers.command.execute(unpack(args))
+                args[0] = table.remove(args, 1)
+                local stdin = modular_computers.internal.dummy_file
+                local stdout = modular_computers.internal.string_output()
+                local stderr = modular_computers.internal.string_output()
+                local iolib, printfunc = modular_computers.internal.luaopen_io(stdin, stdout, stderr)
+                local env = {
+                    io = iolib,
+                    print = printfunc,
+                }
+                setmetatable(env, {__index = _G})
+                local exit_code = modular_computers.command.execute(env, #args, args)
+                terminal_text = terminal_text .. tostring(stderr) .. tostring(stdout)
+                if exit_code ~= 0 then
+                    terminal_text = terminal_text
+                        .. modular_computers.S("ERROR: Command exited with code: @1", tostring(exit_code)) .. "\n"
+                end
                 meta:set_string("text", terminal_text)
 
                 modular_computers:act("Player:\t" .. player_name ..
                     "Submitted command:\t" .. command)
+                -- Show the updated formspec to the player
+                minetest.show_formspec(player_name, formname,
+                                       formspec(terminal_text))
             end
 
             -- Save updated terminal text back to metadata
