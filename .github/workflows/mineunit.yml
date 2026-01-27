@@ -1,0 +1,14 @@
+name: mineunit
+
+on: [push, pull_request]
+
+jobs:
+  mineunit:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - id: mineunit
+      uses: mt-mods/mineunit-actions@master
