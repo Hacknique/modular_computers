@@ -44,6 +44,18 @@ function modular_computers.command.get_computer_pos()
     return modular_computers.internal.command.computer_pos
 end
 
+-- Returns the Lua machine of the computer running the current command, or nil when it
+-- isn't running
+function modular_computers.command.get_machine()
+    local pos = modular_computers.command.get_computer_pos()
+    return pos and modular_computers.machine and modular_computers.machine.get(pos)
+end
+
+-- Returns the name of the player who typed the current command, or nil
+function modular_computers.command.get_player_name()
+    return modular_computers.internal.command.player_name
+end
+
 function modular_computers.command.execute(...)
     local args = { ... }
     local name = args[1]
@@ -86,5 +98,15 @@ function modular_computers.command.execute_at(pos, ...)
     internal.computer_pos = pos
     local terminal_text = modular_computers.command.execute(...)
     internal.computer_pos = previous_pos
+    return terminal_text
+end
+
+-- Like execute_at, for a command typed by the player player_name
+function modular_computers.command.execute_as(player_name, pos, ...)
+    local internal = modular_computers.internal.command
+    local previous_name = internal.player_name
+    internal.player_name = player_name
+    local terminal_text = modular_computers.command.execute_at(pos, ...)
+    internal.player_name = previous_name
     return terminal_text
 end

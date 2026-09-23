@@ -167,6 +167,28 @@ function redstone.get_input(pos, side)
     return math.max(read_levels(meta, MCL_INPUT)[index], read_levels(meta, MESECONS_INPUT)[index])
 end
 
+local function input_levels(pos)
+    local levels = {}
+    for _, side in ipairs(redstone.SIDES) do
+        levels[side] = redstone.get_input(pos, side)
+    end
+    return levels
+end
+
+-- Tells the programs of the computer at pos about the sides whose input changed
+local function notify(pos, before)
+    local m = modular_computers.machine.get(pos)
+    if not m then
+        return
+    end
+    for _, side in ipairs(redstone.SIDES) do
+        local level = redstone.get_input(pos, side)
+        if level ~= before[side] then
+            modular_computers.components.redstone_changed(m, side, before[side], level)
+        end
+    end
+end
+
 -- Returns true if the tower at pos powers a side
 function redstone.get_output(pos, side)
     return has_bit(masks[minetest.get_node(pos).name] or 0, SIDE_BITS[side])
@@ -273,10 +295,12 @@ function redstone.mesecons_def(mask)
             action_change = function(pos, _, rule, new_state)
                 local index = direction_index(rule)
                 if index then
+                    local before = input_levels(pos)
                     local meta = minetest.get_meta(pos)
                     local levels = read_levels(meta, MESECONS_INPUT)
                     levels[index] = new_state == "on" and 15 or 0
                     write_levels(meta, MESECONS_INPUT, levels)
+                    notify(pos, before)
                 end
             end,
         },
@@ -294,11 +318,13 @@ function redstone.mcl_redstone_def(mask)
             return true
         end,
         update = function(pos)
+            local before = input_levels(pos)
             local levels = {}
             for index, dir in ipairs(DIRECTIONS) do
                 levels[index] = mcl_redstone.get_power(pos, dir)
             end
             write_levels(minetest.get_meta(pos), MCL_INPUT, levels)
+            notify(pos, before)
         end,
     }
     if mask ~= 0 then

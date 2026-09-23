@@ -16,9 +16,9 @@
     Copyright (c) 2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
--- Motherboards and the components installed on them, in three tiers each.
--- A motherboard holds components up to its own tier. Installed components are
--- stored in the motherboard's item meta, so they move with the motherboard.
+-- Motherboards and the components installed on them, in three tiers each, and expansion cards.
+-- A motherboard holds components and cards up to its own tier, and one card for each tier.
+-- Installed components are stored in the motherboard's item meta, so they move with it.
 
 local S = modular_computers.S
 
@@ -30,6 +30,7 @@ hardware.TIERS = 3
 hardware.COMPONENTS = { "cpu", "gpu", "ram", "hdd" }
 -- Rows of text a GPU of each tier shows on its monitors
 hardware.GPU_ROWS = { 12, 16, 20 }
+hardware.CARD_SLOTS = 3
 
 hardware.NAMES = {
     motherboard = S("Motherboard"),
@@ -37,6 +38,19 @@ hardware.NAMES = {
     gpu = S("GPU"),
     ram = S("RAM"),
     hdd = S("Hard Drive"),
+    cards = S("Cards"),
+}
+
+-- Expansion cards. range is the distance wireless messages reach, in blocks.
+hardware.CARDS = {
+    { name = "wireless_card_tier_1", type = "wireless", tier = 1, range = 16,
+        description = S("Tier 1 Wireless Card"), details = S("Sends messages @1 blocks far", 16) },
+    { name = "wireless_card_tier_2", type = "wireless", tier = 2, range = 400,
+        description = S("Tier 2 Wireless Card"), details = S("Sends messages @1 blocks far", 400) },
+    { name = "internet_card", type = "internet", tier = 2,
+        description = S("Internet Card"), details = S("Makes HTTP requests") },
+    { name = "data_card", type = "data", tier = 1,
+        description = S("Data Card"), details = S("Hashes, encodes and compresses data") },
 }
 
 local DESCRIPTIONS = {
@@ -57,18 +71,51 @@ function hardware.get_tier(stack, kind)
     return minetest.get_item_group(ItemStack(stack):get_name(), "modular_computers_" .. kind)
 end
 
--- Returns the components stored on a motherboard, as item strings by kind
+-- Returns the card definition (from hardware.CARDS) of an item, or nil if it isn't a card
+function hardware.get_card(stack)
+    local def = minetest.registered_items[ItemStack(stack):get_name()]
+    return def and def._modular_computers_card
+end
+
+-- Items installed on a motherboard are stored as { name, wear, meta } tables
+function hardware.stack_data(stack)
+    return { name = stack:get_name(), wear = stack:get_wear(), meta = stack:get_meta():to_table().fields }
+end
+
+-- Returns the item stored as data by stack_data, or as an item string by older versions
+function hardware.make_stack(data)
+    if type(data) == "string" then
+        return ItemStack(data)
+    elseif type(data) ~= "table" or type(data.name) ~= "string" then
+        return ItemStack(nil)
+    end
+    local stack = ItemStack(data.name)
+    stack:set_wear(tonumber(data.wear) or 0)
+    if type(data.meta) == "table" then
+        stack:get_meta():from_table({ fields = data.meta })
+    end
+    return stack
+end
+
+-- Returns the components stored on a motherboard, as item data by kind
 function hardware.get_installed(motherboard)
     return minetest.deserialize(motherboard:get_meta():get_string("components")) or {}
 end
 
--- Stores components (item strings by kind) on a motherboard and lists them in its description
+-- Stores components (item data by kind, and cards as a list of item data by slot) on a
+-- motherboard and lists them in its description
 function hardware.set_installed(motherboard, installed)
     local meta = motherboard:get_meta()
     local lines = {}
     for _, kind in ipairs(hardware.COMPONENTS) do
         if installed[kind] then
-            table.insert(lines, "- " .. ItemStack(installed[kind]):get_short_description())
+            table.insert(lines, "- " .. hardware.make_stack(installed[kind]):get_short_description())
+        end
+    end
+    for slot = 1, hardware.CARD_SLOTS do
+        local card = installed.cards and installed.cards[slot]
+        if card then
+            table.insert(lines, "- " .. hardware.make_stack(card):get_short_description())
         end
     end
     if #lines == 0 then
@@ -93,4 +140,14 @@ for tier = 1, hardware.TIERS do
             groups = { ["modular_computers_" .. kind] = tier },
         })
     end
+end
+
+for _, card in ipairs(hardware.CARDS) do
+    minetest.register_craftitem("modular_computers:" .. card.name, {
+        description = card.description .. "\n" .. minetest.colorize("#A0A0A0", card.details),
+        inventory_image = "modular_computers_" .. card.name .. ".png",
+        stack_max = 1,
+        groups = { modular_computers_card = card.tier },
+        _modular_computers_card = card,
+    })
 end

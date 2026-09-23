@@ -76,3 +76,10 @@ for tier, material in ipairs(TIER_MATERIALS) do
     register("modular_computers:ram" .. suffix, { "t t t", "r r r" }, keys)
     register("modular_computers:hdd" .. suffix, { "t r t", "r c r", "t r t" }, keys)
 end
+
+local card_keys = { i = "iron", g = "gold", w = "glass", c = "copper", r = "redstone", b = "redstone_block",
+    l = "logic" }
+register("modular_computers:wireless_card_tier_1", { "i r i", "c l c" }, card_keys)
+register("modular_computers:wireless_card_tier_2", { "g b g", "c l c" }, card_keys)
+register("modular_computers:internet_card", { "w r w", "c l c", "g g g" }, card_keys)
+register("modular_computers:data_card", { "i l i", "r c r" }, card_keys)

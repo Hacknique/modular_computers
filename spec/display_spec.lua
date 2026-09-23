@@ -101,12 +101,46 @@ describe("display", function()
 		assert.is_true(rows <= 12)
 	end)
 
-	it("draws text with font glyphs", function()
-		local texture = display.render({ "Hi", "", "?" }, 20, 12, "#D0D0D0")
-		assert.equals("[fill:124x124:#000000^[combine:124x124:2,2=modular_computers_font_48.png:"
-			.. "8,2=modular_computers_font_69.png:2,22=modular_computers_font_3f.png^[multiply:#D0D0D0", texture)
+	it("draws rows of text with font glyphs", function()
+		assert.equals("[fill:124x10:#000000^[combine:124x10:2,0=modular_computers_font_48.png:"
+			.. "8,0=modular_computers_font_69.png^[multiply:#D0D0D0", display.render_line("Hi", 20, "#D0D0D0"))
+		-- Empty rows are just black
+		assert.equals("[fill:124x10:#000000", display.render_line("", 20, "#D0D0D0"))
 		-- Characters the font doesn't have show as question marks
-		assert.is_truthy(display.render({ "ї" }, 20, 12, "#D0D0D0"):find("font_3f.png", 1, true))
+		assert.is_truthy(display.render_line("ї", 20, "#D0D0D0"):find("font_3f.png", 1, true))
+		-- The same text makes the same texture in any row, so clients can reuse it
+		assert.equals(display.render_line("same", 20, "#D0D0D0"), display.render_line("same", 20, "#D0D0D0"))
+	end)
+
+	-- A GPU buffer of width x height cells, filled with char in the given colors
+	local function buffer(width, height, char, fg, bg)
+		local rows = {}
+		for y = 1, height do
+			local row = { chars = {}, fg = {}, bg = {} }
+			for x = 1, width do
+				row.chars[x], row.fg[x], row.bg[x] = char, fg, bg
+			end
+			rows[y] = row
+		end
+		return { width = width, height = height, rows = rows }
+	end
+
+	it("draws what programs drew in color", function()
+		local screen = buffer(10, 2, " ", 0xFFFFFF, 0x000000)
+		screen.rows[1].bg[3], screen.rows[1].bg[4] = 0xFF0000, 0xFF0000
+		screen.rows[2].chars[1], screen.rows[2].fg[1] = "A", 0x00FF00
+		-- One fill for the run of red cells
+		assert.equals("[fill:64x10:#000000^[fill:12x10:14,0:#FF0000", display.render_cells(screen, 1))
+		assert.equals("[fill:64x10:#000000^([combine:64x10:2,0=modular_computers_font_41.png^[multiply:#00FF00)",
+			display.render_cells(screen, 2))
+	end)
+
+	it("fits a row of many colors in a texture", function()
+		local screen = buffer(80, 1, "#", 0xFFFFFF, 0x000000)
+		for x = 1, 80 do
+			screen.rows[1].fg[x], screen.rows[1].bg[x] = x * 0x10101, 0xFFFFFF - x
+		end
+		assert.is_true(#display.render_cells(screen, 1) < 60000)
 	end)
 
 end)

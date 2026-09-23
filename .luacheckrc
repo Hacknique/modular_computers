@@ -3,7 +3,6 @@ allow_defined_top = true
 
 globals = {
     "minetest",
-    "item_tracking"
 }
 
 read_globals = {
@@ -12,7 +11,7 @@ read_globals = {
 
     -- Builtin
     "vector", "ItemStack",
-    "dump", "DIR_DELIM", "VoxelArea", "Settings",
+    "dump", "DIR_DELIM", "VoxelArea", "Settings", "SecureRandom", "PcgRandom",
 
     -- MTG
     "default", "sfinv", "creative",
@@ -25,4 +24,15 @@ files["spec/"] = {
     std = "+busted",
     globals = {"core", "mineunit"},
     read_globals = {"sourcefile", "fixture", "world", "Player"},
+}
+
+-- Programs and libraries that run on the computers, in their sandbox
+files["src/os/rom/"] = {
+    std = "lua51",
+    globals = {"os", "io", "print", "loadfile", "dofile", "require"},
+    read_globals = {
+        "component", "computer", "event", "filesystem", "term", "serialization", "sides", "colors", "text",
+        "shell", "internet", "package", "bit32", "unicode",
+        table = {fields = {"pack", "unpack"}},
+    },
 }

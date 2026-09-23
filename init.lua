@@ -28,9 +28,13 @@ modular_computers.mod.path = minetest.get_modpath(modular_computers.mod.name)
 
 modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 
+-- For internet cards. This only works here, and when the mod is listed in secure.http_mods.
+modular_computers.http = minetest.request_http_api and minetest.request_http_api()
+
 -- Load the scripts
 dofile(modular_computers.mod.path .. "/src/utilities.lua")
 dofile(modular_computers.mod.path .. "/src/os/init.lua")
 dofile(modular_computers.mod.path .. "/src/items/init.lua")
+dofile(modular_computers.mod.path .. "/src/cards/init.lua")
 dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
 dofile(modular_computers.mod.path .. "/src/recipes.lua")

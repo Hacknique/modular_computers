@@ -1,0 +1,15 @@
+# Internet
+
+# Let internet cards make HTTP requests. The mod must also be listed in secure.http_mods.
+modular_computers.internet_enabled (Allow internet cards) bool false
+
+# Hosts internet cards may reach, separated by commas, like "example.com, *.example.org".
+# When empty, any host that isn't on a local network is allowed. The server follows
+# redirects, so only a list of hosts keeps computers away from local networks for sure.
+modular_computers.internet_whitelist (Internet card hosts) string
+
+# Computers
+
+# When the server's Lua memory grows past this many MiB, the computer that allocated the
+# most lately is stopped. 0 turns this off.
+modular_computers.memory_limit (Lua memory limit for computers, in MiB) int 1024 0 1048576

@@ -163,7 +163,7 @@ describe("computer", function()
 		assert.is_true(inv:is_empty("cpu"))
 		assert.is_true(inv:is_empty("gpu"))
 		local installed = modular_computers.hardware.get_installed(motherboard)
-		assert.equals("modular_computers:cpu_tier_2", ItemStack(installed.cpu):get_name())
+		assert.equals("modular_computers:cpu_tier_2", modular_computers.hardware.make_stack(installed.cpu):get_name())
 
 		assert.is_true(put("motherboard", motherboard))
 		assert.equals("modular_computers:cpu_tier_2", inv:get_stack("cpu", 1):get_name())

@@ -52,7 +52,10 @@ describe("terminal", function()
 		local meta = new_meta(2)
 		terminal.append(meta, "old\n")
 		terminal.append(meta, "gone\n" .. terminal.CLEAR .. "new")
-		assert.equals("new\n", terminal.get_text(meta))
+		-- A line without its end is kept that way, for the rest to follow
+		assert.equals("new", terminal.get_text(meta))
+		terminal.append(meta, " line\n")
+		assert.equals("new line\n", terminal.get_text(meta))
 	end)
 
 	it("remembers commands once", function()

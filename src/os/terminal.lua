@@ -26,15 +26,23 @@ terminal.FORMNAME = "modular_computers:computer_formspec"
 -- Command output containing the ANSI "erase display" sequence clears the screen
 terminal.CLEAR = "\27[2J"
 terminal.PROMPT = "$"
+-- Shown instead of the prompt while a program reads the input
+terminal.PROGRAM_PROMPT = ">"
+-- Typing this stops the running program, like Ctrl+C
+terminal.INTERRUPT = "^C"
 terminal.COLUMNS = 80
 -- Output is padded with empty rows at the top so that it always sits right above the prompt
 terminal.ROWS = 64
 terminal.MAX_LINES = 200
+-- Programs can write long lines, so the scrollback is also kept to this many bytes
+terminal.MAX_BYTES = 16384
 terminal.MAX_HISTORY = 50
 
 local BACKGROUND = "#000000"
 local FOREGROUND = "#D0D0D0"
 local PROMPT_COLOR = "#55FF55"
+local PROGRAM_PROMPT_COLOR = "#FFFF55"
+local INTERRUPT_COLOR = "#FF5555"
 local INPUT_COLOR = "#FFFFFF"
 
 local UTF8_CHAR = "[%z\1-\127\194-\244][\128-\191]*"
@@ -100,11 +108,26 @@ function terminal.append(meta, output)
         output = string.sub(output, clear_end + 1)
     end
 
-    local lines = split_lines(text .. output)
+    local combined = text .. output
+    local lines = split_lines(combined)
     if #lines > terminal.MAX_LINES then
         lines = { unpack(lines, #lines - terminal.MAX_LINES + 1) }
     end
-    meta:set_string("text", join_lines(lines))
+    text = join_lines(lines)
+    -- Programs can write part of a line, like a prompt, and the rest later
+    if combined ~= "" and string.sub(combined, -1) ~= "\n" then
+        text = string.sub(text, 1, -2)
+    end
+    if #text > terminal.MAX_BYTES then
+        -- Whole lines are kept, unless a long line would leave too little: then its end is
+        local line_end = string.find(text, "\n", #text - terminal.MAX_BYTES, true)
+        if line_end and #text - line_end >= terminal.MAX_BYTES / 2 then
+            text = string.sub(text, line_end + 1)
+        else
+            text = string.sub(text, -terminal.MAX_BYTES)
+        end
+    end
+    meta:set_string("text", text)
     mark_private(meta)
 end
 
@@ -143,7 +166,8 @@ function terminal.get_rows(text, lang_code, columns)
     return rows
 end
 
-function terminal.formspec(text, input, lang_code)
+-- A running program reads the input instead of the shell when program is true
+function terminal.formspec(text, input, lang_code, program)
     local rows = terminal.get_rows(text, lang_code)
     local cells = {}
     for _ = #rows + 1, terminal.ROWS do
@@ -169,9 +193,14 @@ function terminal.formspec(text, input, lang_code)
         -- Selecting the last row scrolls the newest output into view.
         "table[0.35,0.3;18.65,9.7;terminal_out_", shown_count, ";",
         table.concat(cells, ","), ";", #cells, "]",
-        "label[0.35,10.375;", minetest.colorize(PROMPT_COLOR, terminal.PROMPT), "]",
+        "label[0.35,10.375;", minetest.colorize(program and PROGRAM_PROMPT_COLOR or PROMPT_COLOR,
+            program and terminal.PROGRAM_PROMPT or terminal.PROMPT), "]",
         "field_close_on_enter[terminal_in;false]",
         "set_focus[terminal_in;true]",
-        "field[0.75,10.05;16.9,0.65;terminal_in;;", minetest.formspec_escape(input or ""), "]",
+        "field[0.75,10.05;", program and 15.8 or 16.9, ",0.65;terminal_in;;",
+        minetest.formspec_escape(input or ""), "]",
+        -- Stops the running program, like Ctrl+C
+        program and ("style[interrupt;font=mono;textcolor=" .. INTERRUPT_COLOR .. ";bgcolor=" .. BACKGROUND
+            .. "]button[16.65,10.05;1,0.65;interrupt;^C]") or "",
     })
 end

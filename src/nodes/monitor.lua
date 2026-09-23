@@ -17,7 +17,8 @@
 ]]
 
 -- The monitor goes on top of a computer tower and opens its terminal. Monitors next to and
--- above it join into a bigger screen, see display.lua.
+-- above it join into a bigger screen, see display.lua. While a program draws on the screen,
+-- clicking it sends the program a touch signal instead.
 
 local S = modular_computers.S
 local redstone = modular_computers.redstone
@@ -58,6 +59,18 @@ minetest.register_node(MONITOR, {
         local tower_pos = display.find_tower(pos)
         if not tower_pos then
             minetest.chat_send_player(player_name, S("Place the monitor on top of a computer tower."))
+            return itemstack
+        end
+        local m = modular_computers.machine.get(tower_pos)
+        if m and m.screen and m.screen.mode == "graphics" and not clicker:get_player_control().sneak then
+            if minetest.is_protected(tower_pos, player_name) then
+                minetest.record_protection_violation(tower_pos, player_name)
+                return itemstack
+            end
+            local x, y = display.pointed_cell(tower_pos, clicker, m.screen.width, m.screen.height)
+            if x then
+                modular_computers.machine.push_signal(m, "touch", m.screen_address, x, y, 0, player_name)
+            end
             return itemstack
         end
         computer.open_terminal(player_name, tower_pos)

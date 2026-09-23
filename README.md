@@ -4,6 +4,17 @@
 
 Welcome to the Modular Computers repository. A comprehensive implementation of Computers in Minetest.
 
+## Features
++ Computer towers with a motherboard, CPU, GPU, RAM and hard drive in three tiers, and a monitor on top. More monitors beside and above it make the screen bigger.
++ A terminal with shell commands, a text editor, and Lua programs that run in a sandbox, with an API modelled on [OpenComputers](https://ocdoc.cil.li/): components, signals and events, files, GPU drawing in color, and more. See [programming computers](.docs/LUA_API.md).
++ Redstone input and output on every side of the tower, with mesecons or Mineclonia's redstone.
++ Cards: wireless cards to send messages between computers, internet cards for HTTP requests and data cards for hashing, encoding and compression.
++ Recipes for Minetest Game, Mineclonia and VoxeLibre.
+
+## Server settings
++ `modular_computers.internet_enabled` lets internet cards make HTTP requests. The mod must also be listed in `secure.http_mods`. Requests to local networks are refused, but the server follows redirects, so set `modular_computers.internet_whitelist` to the hosts computers may use to be sure.
++ `modular_computers.memory_limit` (MiB, default 1024) stops the computer that allocated the most memory lately when the server's Lua memory grows past it. 0 turns this off.
+
 ## Documentation
 For an in-depth understanding of the project, setting up the environment, and other related information, refer to our [documentation](.docs/).
 

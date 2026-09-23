@@ -24,6 +24,22 @@ modular_computers.command.register("help", {
             local description = modular_computers.command.get(name).description
             table.insert(lines, description and string.format("%-10s %s", name, description) or name)
         end
+        -- Lua programs in /bin
+        local m = modular_computers.command.get_machine()
+        if m then
+            local fs = m.components[m.drive]
+            local programs = {}
+            for _, file in ipairs(modular_computers.components.types.filesystem.list(m, fs, "/bin") or {}) do
+                local name = file:match("^(.-)%.lua$")
+                if name then
+                    table.insert(programs, name)
+                end
+            end
+            if #programs > 0 then
+                table.insert(lines, "")
+                table.insert(lines, modular_computers.S("Programs: @1", table.concat(programs, ", ")))
+            end
+        end
         return "", table.concat(lines, "\n") .. "\n", "", 0
     end,
 })

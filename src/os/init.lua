@@ -18,7 +18,12 @@
 
 modular_computers.os = {}
 
+dofile(modular_computers.mod.path .. "/src/os/lua/patterns.lua")
+dofile(modular_computers.mod.path .. "/src/os/lua/rewrite.lua")
+dofile(modular_computers.mod.path .. "/src/os/lua/sandbox.lua")
 dofile(modular_computers.mod.path .. "/src/os/api/init.lua")
 dofile(modular_computers.mod.path .. "/src/os/terminal.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")
 dofile(modular_computers.mod.path .. "/src/os/fs/init.lua")
+dofile(modular_computers.mod.path .. "/src/os/machine.lua")
+dofile(modular_computers.mod.path .. "/src/os/components.lua")
+dofile(modular_computers.mod.path .. "/src/os/bin/init.lua")

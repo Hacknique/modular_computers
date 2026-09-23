@@ -16,8 +16,9 @@
     Copyright (c) 2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
--- The computer tower holds a motherboard and the components installed on it. Components can
--- only be installed on a motherboard of at least their tier, and leave the tower with it.
+-- The computer tower holds a motherboard and the components and cards installed on it.
+-- Components and cards can only be installed on a motherboard of at least their tier, and
+-- leave the tower with it. A motherboard has a card slot for each of its tiers.
 
 local S = modular_computers.S
 local F = minetest.formspec_escape
@@ -34,6 +35,18 @@ local SLOTS = {
     { list = "ram", x = 5 },
     { list = "hdd", x = 6.25 },
 }
+local CARDS_X, CARDS_Y = 2.5, 3.1
+
+local function ensure_lists(inv)
+    for _, slot in ipairs(SLOTS) do
+        if inv:get_size(slot.list) == 0 then
+            inv:set_size(slot.list, 1)
+        end
+    end
+    if inv:get_size("cards") == 0 then
+        inv:set_size("cards", hardware.CARD_SLOTS)
+    end
+end
 
 local function tower_formspec(pos, player)
     local inv = minetest.get_meta(pos):get_inventory()
@@ -48,9 +61,10 @@ local function tower_formspec(pos, player)
         return mcl and mcl_formspec.get_itemslot_bg_v4(x, y, w, h) or ""
     end
 
+    local width = 0.5 + 1.25 * columns
     local formspec = {
         "formspec_version[4]",
-        "size[", 0.5 + 1.25 * columns, ",10.425]",
+        "size[", width, ",11.325]",
         label(0.375, 0.375, S("Computer Tower")),
     }
     for _, slot in ipairs(SLOTS) do
@@ -63,46 +77,80 @@ local function tower_formspec(pos, player)
         table.insert(formspec, label(slot.x, 2.2, hardware.NAMES[slot.list]))
     end
 
-    local missing = computer.get_missing(pos)
-    local status
-    if #missing == 0 then
-        status = minetest.colorize("#3CB43C", S("Running"))
-    else
-        status = minetest.colorize("#D24040", S("Needs: @1", table.concat(missing, ", ")))
-    end
-    table.insert(formspec, "label[0.375,3.1;" .. F(status) .. "]")
     local tier = hardware.get_tier(inv:get_stack("motherboard", 1), "motherboard")
+    table.insert(formspec, label(CARDS_X, CARDS_Y - 0.35, hardware.NAMES.cards))
     if tier > 0 then
-        table.insert(formspec, label(0.375, 3.6, S("Holds components up to tier @1", tier)))
+        table.insert(formspec, slot_backgrounds(CARDS_X, CARDS_Y, tier, 1))
+        table.insert(formspec, "list[" .. location .. ";cards;" .. CARDS_X .. "," .. CARDS_Y .. ";" .. tier .. ",1;]")
+    else
+        table.insert(formspec, label(CARDS_X, CARDS_Y + 0.5, S("Put a motherboard in the tower first.")))
     end
 
-    table.insert(formspec, label(0.375, 4.7, S("Inventory")))
-    table.insert(formspec, slot_backgrounds(0.375, 5.1, columns, 3))
-    table.insert(formspec, "list[current_player;main;0.375,5.1;" .. columns .. ",3;" .. columns .. "]")
-    table.insert(formspec, slot_backgrounds(0.375, 9.05, columns, 1))
-    table.insert(formspec, "list[current_player;main;0.375,9.05;" .. columns .. ",1;]")
+    local meta = minetest.get_meta(pos)
+    local missing = computer.get_missing(pos)
+    local status
+    if #missing > 0 then
+        status = minetest.colorize("#D24040", S("Needs: @1", table.concat(missing, ", ")))
+    elseif meta:get_string("power") == "off" then
+        status = minetest.colorize("#A0A0A0", S("Turned off"))
+    else
+        status = minetest.colorize("#3CB43C", S("Running"))
+    end
+    table.insert(formspec, "label[0.375,4.55;" .. F(status) .. "]")
+    if tier > 0 then
+        table.insert(formspec, label(0.375, 5.0, S("Holds components up to tier @1", tier)))
+    end
+
+    local button_x = width - 2.875
+    table.insert(formspec, "button[" .. button_x .. ",0.9;2.5,0.8;power;" ..
+        F(meta:get_string("power") == "off" and S("Turn On") or S("Turn Off")) .. "]")
+    if computer.is_running(pos) then
+        table.insert(formspec, "button[" .. button_x .. ",1.85;2.5,0.8;restart;" .. F(S("Restart")) .. "]")
+    end
+
+    table.insert(formspec, label(0.375, 5.6, S("Inventory")))
+    table.insert(formspec, slot_backgrounds(0.375, 6.0, columns, 3))
+    table.insert(formspec, "list[current_player;main;0.375,6.0;" .. columns .. ",3;" .. columns .. "]")
+    table.insert(formspec, slot_backgrounds(0.375, 9.95, columns, 1))
+    table.insert(formspec, "list[current_player;main;0.375,9.95;" .. columns .. ",1;]")
+    table.insert(formspec, "listring[" .. location .. ";cards]")
+    table.insert(formspec, "listring[current_player;main]")
     return table.concat(formspec)
 end
 
 local function show_formspec(player, pos)
-    minetest.show_formspec(player:get_player_name(), FORMNAME, tower_formspec(pos, player))
+    local player_name = player:get_player_name()
+    modular_computers.get_context(player_name).tower_pos = vector.new(pos.x, pos.y, pos.z)
+    minetest.show_formspec(player_name, FORMNAME, tower_formspec(pos, player))
 end
 
--- Keeps the components in the tower stored on its motherboard, so they leave the tower with it
+-- Keeps the components and cards in the tower stored on its motherboard, so they leave the
+-- tower with it
 local function store_components(inv)
     local motherboard = inv:get_stack("motherboard", 1)
     if motherboard:is_empty() then
         return
     end
-    local installed = {}
+    local installed = { cards = {} }
     for _, kind in ipairs(hardware.COMPONENTS) do
         local stack = inv:get_stack(kind, 1)
         if not stack:is_empty() then
-            installed[kind] = stack:to_string()
+            installed[kind] = hardware.stack_data(stack)
+        end
+    end
+    for slot = 1, inv:get_size("cards") do
+        local stack = inv:get_stack("cards", slot)
+        if not stack:is_empty() then
+            installed.cards[slot] = hardware.stack_data(stack)
         end
     end
     hardware.set_installed(motherboard, installed)
     inv:set_stack("motherboard", 1, motherboard)
+end
+
+-- Stores the parts of the tower at pos on its motherboard, after their item meta changed
+function computer.save_parts(pos)
+    store_components(minetest.get_meta(pos):get_inventory())
 end
 
 local function is_monitor_item(stack)
@@ -122,6 +170,8 @@ local function on_rightclick(pos, node, clicker, itemstack, pointed_thing)
         minetest.record_protection_violation(pos, player_name)
         return itemstack
     end
+    -- Towers placed by older versions have no card slots
+    ensure_lists(minetest.get_meta(pos):get_inventory())
     show_formspec(clicker, pos)
     return itemstack
 end
@@ -160,15 +210,15 @@ for mask = 0, redstone.MAX_MASK do
         _mcl_blast_resistance = 3.5,
 
         on_construct = function(pos)
-            local inv = minetest.get_meta(pos):get_inventory()
-            for _, slot in ipairs(SLOTS) do
-                inv:set_size(slot.list, 1)
-            end
+            ensure_lists(minetest.get_meta(pos):get_inventory())
             computer.update(pos)
             -- The monitor on top may have been part of another tower's screen
             display.update_near(vector.add(pos, vector.new(0, 1, 0)))
         end,
-        on_destruct = display.remove,
+        on_destruct = function(pos)
+            modular_computers.machine.stop(pos)
+            display.remove(pos)
+        end,
         after_destruct = function(pos)
             display.update_near(vector.add(pos, vector.new(0, 1, 0)))
         end,
@@ -184,11 +234,23 @@ for mask = 0, redstone.MAX_MASK do
         on_rightclick = on_rightclick,
         on_rotate = redstone.on_rotate,
 
-        allow_metadata_inventory_put = function(pos, listname, _, stack, player)
+        allow_metadata_inventory_put = function(pos, listname, index, stack, player)
             local player_name = player:get_player_name()
             local inv = minetest.get_meta(pos):get_inventory()
-            if minetest.is_protected(pos, player_name) or not inv:is_empty(listname) then
+            if minetest.is_protected(pos, player_name) or not inv:get_stack(listname, index):is_empty() then
                 return 0
+            end
+            if listname == "cards" then
+                local motherboard_tier = hardware.get_tier(inv:get_stack("motherboard", 1), "motherboard")
+                local card = hardware.get_card(stack)
+                if not card or index > motherboard_tier then
+                    return 0
+                elseif card.tier > motherboard_tier then
+                    minetest.chat_send_player(player_name,
+                        S("A tier @1 motherboard can't hold tier @2 components.", motherboard_tier, card.tier))
+                    return 0
+                end
+                return 1
             end
             local tier = hardware.get_tier(stack, listname)
             if listname == "motherboard" or tier == 0 then
@@ -216,10 +278,16 @@ for mask = 0, redstone.MAX_MASK do
             if listname == "motherboard" then
                 local installed = hardware.get_installed(stack)
                 for _, kind in ipairs(hardware.COMPONENTS) do
-                    inv:set_stack(kind, 1, ItemStack(installed[kind]))
+                    inv:set_stack(kind, 1, hardware.make_stack(installed[kind]))
+                end
+                for slot = 1, inv:get_size("cards") do
+                    inv:set_stack("cards", slot, hardware.make_stack(installed.cards and installed.cards[slot]))
                 end
             else
                 store_components(inv)
+            end
+            if listname == "cards" then
+                modular_computers.machine.update_cards(pos)
             end
             computer.update(pos)
             show_formspec(player, pos)
@@ -231,8 +299,14 @@ for mask = 0, redstone.MAX_MASK do
                 for _, kind in ipairs(hardware.COMPONENTS) do
                     inv:set_stack(kind, 1, ItemStack(nil))
                 end
+                for slot = 1, inv:get_size("cards") do
+                    inv:set_stack("cards", slot, ItemStack(nil))
+                end
             else
                 store_components(inv)
+            end
+            if listname == "cards" then
+                modular_computers.machine.update_cards(pos)
             end
             computer.update(pos)
             show_formspec(player, pos)
@@ -242,3 +316,34 @@ for mask = 0, redstone.MAX_MASK do
         _mcl_redstone = redstone.mcl_redstone_def(mask),
     })
 end
+
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+    if formname ~= FORMNAME then
+        return false
+    end
+    local player_name = player:get_player_name()
+    local context = modular_computers.get_context(player_name)
+    local pos = context.tower_pos
+    if fields.quit then
+        context.tower_pos = nil
+        return true
+    end
+    if not pos or not computer.is_tower(pos) then
+        return true
+    end
+    if minetest.is_protected(pos, player_name) then
+        minetest.record_protection_violation(pos, player_name)
+        return true
+    end
+    if fields.power then
+        local meta = minetest.get_meta(pos)
+        meta:set_string("power", meta:get_string("power") == "off" and "" or "off")
+        computer.update(pos)
+    elseif fields.restart then
+        computer.restart(pos)
+    else
+        return true
+    end
+    show_formspec(player, pos)
+    return true
+end)
