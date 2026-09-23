@@ -16,11 +16,11 @@
     Copyright (c) 2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
--- Redstone support for computers, through mcl_redstone (Mineclonia) and mesecons
+-- Redstone support for computer towers, through mcl_redstone (Mineclonia) and mesecons
 -- (VoxeLibre, Minetest Game, or the mesecons modpack in other games).
 --
--- Sides are relative to the computer: "front" is the screen, and "left" and "right" are
--- as seen by a player looking at the screen.
+-- Sides are relative to the tower: "front" is its front panel, and "left" and "right" are
+-- as seen by a player looking at the front.
 --
 -- Both mcl_redstone and mesecons work out the power a node emits from the node alone, so
 -- the powered sides are stored in the node name: there is one node for every combination
@@ -30,7 +30,7 @@
 modular_computers.redstone = {}
 local redstone = modular_computers.redstone
 
-redstone.BASE_NODE = "modular_computers:computer"
+redstone.BASE_NODE = "modular_computers:tower"
 redstone.SIDES = { "front", "back", "left", "right", "top", "bottom" }
 redstone.MAX_MASK = 2 ^ #redstone.SIDES - 1
 
@@ -104,22 +104,27 @@ local function get_facedir(node)
     return facedir < 24 and facedir or 0
 end
 
+-- Returns the suffix of the node name for outputs on the sides in mask, like "_100000"
+function redstone.name_suffix(mask)
+    if mask == 0 then
+        return ""
+    end
+    local digits = {}
+    for index, side in ipairs(redstone.SIDES) do
+        digits[index] = has_bit(mask, SIDE_BITS[side]) and "1" or "0"
+    end
+    return "_" .. table.concat(digits)
+end
+
 local node_names = {}
 local masks = {}
 for mask = 0, redstone.MAX_MASK do
-    local name = redstone.BASE_NODE
-    if mask ~= 0 then
-        local digits = {}
-        for index, side in ipairs(redstone.SIDES) do
-            digits[index] = has_bit(mask, SIDE_BITS[side]) and "1" or "0"
-        end
-        name = name .. "_" .. table.concat(digits)
-    end
+    local name = redstone.BASE_NODE .. redstone.name_suffix(mask)
     node_names[mask] = name
     masks[name] = mask
 end
 
--- Returns the name of the computer node with outputs on the sides in mask
+-- Returns the name of the tower node with outputs on the sides in mask
 function redstone.node_name(mask)
     return node_names[mask]
 end
@@ -128,7 +133,7 @@ function redstone.is_side(side)
     return SIDE_BITS[side] ~= nil
 end
 
--- Returns the compass direction ("north", "up", ...) a side of the computer at pos faces
+-- Returns the compass direction ("north", "up", ...) a side of the tower at pos faces
 function redstone.get_direction_name(pos, side)
     return DIRECTION_NAMES[side_directions[get_facedir(minetest.get_node(pos))][side]]
 end
@@ -155,21 +160,21 @@ local function write_levels(meta, key, levels)
     end
 end
 
--- Returns the signal level (0-15) coming into a side of the computer at pos
+-- Returns the signal level (0-15) coming into a side of the tower at pos
 function redstone.get_input(pos, side)
     local index = side_directions[get_facedir(minetest.get_node(pos))][side]
     local meta = minetest.get_meta(pos)
     return math.max(read_levels(meta, MCL_INPUT)[index], read_levels(meta, MESECONS_INPUT)[index])
 end
 
--- Returns true if the computer at pos powers a side
+-- Returns true if the tower at pos powers a side
 function redstone.get_output(pos, side)
     return has_bit(masks[minetest.get_node(pos).name] or 0, SIDE_BITS[side])
 end
 
 local ALL_RULES = copy_directions({ 1, 2, 3, 4, 5, 6 })
 
--- mesecons rules for the powered sides of a computer node, cached by facedir and mask
+-- mesecons rules for the powered sides of a tower node, cached by facedir and mask
 local output_rules_cache = {}
 local function output_rules(node)
     local mask = masks[node.name] or 0
@@ -196,7 +201,7 @@ local function contains_rule(rules, rule)
     return false
 end
 
--- Swaps the computer node at pos for new_node and tells redstone about changed outputs
+-- Swaps the tower node at pos for new_node and tells redstone about changed outputs
 local function transition(pos, old_node, new_node)
     if minetest.global_exists("mcl_redstone") then
         mcl_redstone.swap_node(pos, new_node)
@@ -226,8 +231,8 @@ local function transition(pos, old_node, new_node)
     end
 end
 
--- Switches the output of a side (or "all" sides) of the computer at pos on or off.
--- Returns false if there is no computer at pos or the side is unknown.
+-- Switches the output of a side (or "all" sides) of the tower at pos on or off.
+-- Returns false if there is no tower at pos or the side is unknown.
 function redstone.set_output(pos, side, on)
     local node = minetest.get_node(pos)
     local mask = masks[node.name]
@@ -251,7 +256,7 @@ function redstone.set_output(pos, side, on)
     return true
 end
 
--- Screwdriver callback: moves the outputs along with the computer
+-- Screwdriver callback: moves the outputs along with the tower
 function redstone.on_rotate(pos, node, user, mode, new_param2)
     if (masks[node.name] or 0) == 0 then
         return nil
@@ -260,7 +265,7 @@ function redstone.on_rotate(pos, node, user, mode, new_param2)
     return true
 end
 
--- The `mesecons` field of the computer node with outputs on the sides in mask
+-- The `mesecons` field of the tower node with outputs on the sides in mask
 function redstone.mesecons_def(mask)
     return {
         effector = {
@@ -282,7 +287,7 @@ function redstone.mesecons_def(mask)
     }
 end
 
--- The `_mcl_redstone` field of the computer node with outputs on the sides in mask
+-- The `_mcl_redstone` field of the tower node with outputs on the sides in mask
 function redstone.mcl_redstone_def(mask)
     local def = {
         connects_to = function()

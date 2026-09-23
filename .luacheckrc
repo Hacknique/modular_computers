@@ -18,7 +18,7 @@ read_globals = {
     "default", "sfinv", "creative",
 
     -- Mineclonia / VoxeLibre / mesecons
-    "mcl_sounds", "mcl_redstone", "mesecon",
+    "mcl_sounds", "mcl_redstone", "mcl_formspec", "mesecon",
 }
 
 files["spec/"] = {

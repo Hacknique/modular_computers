@@ -27,14 +27,16 @@ Output containing `modular_computers.terminal.CLEAR` clears the screen first.
 * `modular_computers.command.execute_at(pos, name, ...)` does the same for the
   computer at `pos`.
 * `modular_computers.command.get_computer_pos()` returns that position while a
-  command started through `execute_at` runs, and `nil` otherwise.
+  command started through `execute_at` runs, and `nil` otherwise. For commands
+  typed into a terminal it is the position of the computer tower.
 * `modular_computers.command.list()` returns the names of all commands.
 
 # Redstone
 
-Computers work with mesecons and with Mineclonia's redstone. Sides are
-`front` (the screen), `back`, `left`, `right`, `top` and `bottom`, with left and
-right as seen by a player looking at the screen.
+Computer towers work with mesecons and with Mineclonia's redstone. Sides are
+`front` (the tower's front panel), `back`, `left`, `right`, `top` and `bottom`,
+with left and right as seen by a player looking at the front. A tower switches
+its outputs off when it stops.
 
 * `modular_computers.redstone.get_input(pos, side)` returns the signal level
   (0-15) coming into a side.

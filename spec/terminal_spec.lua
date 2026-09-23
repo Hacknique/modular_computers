@@ -23,6 +23,10 @@ describe("terminal", function()
 		assert.same({ string.rep("a", 80), string.rep("a", 20) }, rows)
 	end)
 
+	it("wraps lines at a given width", function()
+		assert.same({ "abcd", "ef" }, terminal.get_rows("abcdef\n", "", 4))
+	end)
+
 	it("counts multibyte characters as one column", function()
 		local rows = terminal.get_rows(string.rep("ї", 81) .. "\n", "")
 		assert.same({ string.rep("ї", 80), "ї" }, rows)

@@ -17,15 +17,24 @@
     Copyright (c) 2023 nitrogenez
 ]]
 
+-- A computer is a tower with a motherboard and components, used through the monitor on top
+-- of it. The tower keeps the terminal (node meta "text" and "history") and runs while it has
+-- all its components.
+
 local S = modular_computers.S
 local terminal = modular_computers.terminal
+local hardware = modular_computers.hardware
 local redstone = modular_computers.redstone
+local display = modular_computers.display
 
-local function is_computer(pos)
-    return minetest.get_item_group(minetest.get_node(pos).name, "modular_computer") > 0
+modular_computers.computer = {}
+local computer = modular_computers.computer
+
+function computer.is_tower(pos)
+    return minetest.get_item_group(minetest.get_node(pos).name, "modular_computer_tower") > 0
 end
 
-local function stone_sounds()
+function computer.stone_sounds()
     if minetest.global_exists("mcl_sounds") then
         return mcl_sounds.node_sound_stone_defaults()
     elseif minetest.global_exists("default") and default.node_sound_stone_defaults then
@@ -33,11 +42,65 @@ local function stone_sounds()
     end
 end
 
+-- Returns the names of the parts the tower at pos still needs to run
+function computer.get_missing(pos)
+    local inv = minetest.get_meta(pos):get_inventory()
+    if inv:is_empty("motherboard") then
+        return { hardware.NAMES.motherboard }
+    end
+    local missing = {}
+    for _, kind in ipairs(hardware.COMPONENTS) do
+        if inv:is_empty(kind) then
+            table.insert(missing, hardware.NAMES[kind])
+        end
+    end
+    return missing
+end
+
+function computer.is_running(pos)
+    return minetest.get_meta(pos):get_int("running") == 1
+end
+
+-- Starts or stops the computer at pos after its parts changed, and refreshes its screen
+function computer.update(pos)
+    local meta = minetest.get_meta(pos)
+    local running = #computer.get_missing(pos) == 0
+    if running ~= computer.is_running(pos) then
+        meta:set_int("running", running and 1 or 0)
+        if running then
+            terminal.append(meta,
+                S("Modular Computers") .. "\n" .. S("Type 'help' for a list of commands.") .. "\n")
+        else
+            redstone.set_output(pos, "all", false)
+        end
+    end
+    display.update(pos)
+end
+
 local function show_terminal(player_name, pos, input)
     local info = minetest.get_player_information(player_name)
     local text = terminal.get_text(minetest.get_meta(pos))
     minetest.show_formspec(player_name, terminal.FORMNAME,
         terminal.formspec(text, input, info and info.lang_code))
+end
+
+-- Opens the terminal of the tower at pos, if it is running
+function computer.open_terminal(player_name, pos)
+    if minetest.is_protected(pos, player_name) then
+        minetest.record_protection_violation(pos, player_name)
+        return
+    end
+    local missing = computer.get_missing(pos)
+    if #missing > 0 then
+        minetest.chat_send_player(player_name,
+            S("The computer tower needs: @1", table.concat(missing, ", ")))
+        return
+    end
+
+    local context = modular_computers.get_context(player_name)
+    context.computer_pos = { x = pos.x, y = pos.y, z = pos.z }
+    context.history_index, context.draft = nil, nil
+    show_terminal(player_name, pos, "")
 end
 
 local function run_command_line(pos, command_line)
@@ -72,68 +135,6 @@ local function recall_history(context, meta, step, input)
     return history[index]
 end
 
-local function on_rightclick(pos, node, clicker, itemstack)
-    if not clicker or not clicker:is_player() then
-        return itemstack
-    end
-    local player_name = clicker:get_player_name()
-    if minetest.is_protected(pos, player_name) then
-        minetest.record_protection_violation(pos, player_name)
-        return itemstack
-    end
-
-    local context = modular_computers.get_context(player_name)
-    context.computer_pos = { x = pos.x, y = pos.y, z = pos.z }
-    context.history_index, context.draft = nil, nil
-    show_terminal(player_name, pos, "")
-    return itemstack
-end
-
--- register the computer node, with one variant for every combination of powered redstone sides
-for mask = 0, redstone.MAX_MASK do
-    local groups = { cracky = 2, pickaxey = 1, modular_computer = 1 }
-    if mask ~= 0 then
-        groups.not_in_creative_inventory = 1
-        groups.not_in_craft_guide = 1
-    end
-
-    minetest.register_node(redstone.node_name(mask), {
-        description = S("Computer"),
-        tiles = {
-            "computer_side.png", -- Y+
-            "computer_side.png", -- Y-
-            "computer_side.png", -- X+
-            "computer_side.png", -- X-
-            "computer_side.png", -- Z+
-            "computer_front.png" -- Z-
-        },
-        groups = groups,
-        is_ground_content = false,
-        sounds = stone_sounds(),
-        paramtype = "light",
-        light_source = 6,
-        paramtype2 = "facedir", -- needed for the node to rotate properly on place
-        stack_max = 1,
-        drop = mask ~= 0 and redstone.BASE_NODE or nil,
-        _doc_items_create_entry = mask == 0,
-        _mcl_hardness = 3.5,
-        _mcl_blast_resistance = 3.5,
-
-        on_place = minetest.rotate_node,
-
-        on_construct = function(pos)
-            terminal.append(minetest.get_meta(pos),
-                S("Modular Computers") .. "\n" .. S("Type 'help' for a list of commands.") .. "\n")
-        end,
-
-        on_rightclick = on_rightclick,
-        on_rotate = redstone.on_rotate,
-
-        mesecons = redstone.mesecons_def(mask),
-        _mcl_redstone = redstone.mcl_redstone_def(mask),
-    })
-end
-
 -- Handle form submission
 minetest.register_on_player_receive_fields(
     function(player, formname, fields)
@@ -148,7 +149,7 @@ minetest.register_on_player_receive_fields(
             context.computer_pos, context.history_index, context.draft = nil, nil, nil
             return true
         end
-        if not pos or not is_computer(pos) then
+        if not pos or not computer.is_tower(pos) or not computer.is_running(pos) then
             minetest.close_formspec(player_name, terminal.FORMNAME)
             return true
         end
@@ -164,6 +165,7 @@ minetest.register_on_player_receive_fields(
             run_command_line(pos, input)
             input = ""
             context.history_index, context.draft = nil, nil
+            display.update(pos)
         elseif fields.key_up then
             input = recall_history(context, minetest.get_meta(pos), -1, input)
         elseif fields.key_down then
@@ -175,33 +177,3 @@ minetest.register_on_player_receive_fields(
         return true
     end
 )
-
-modular_computers.register_bulk_recipes("computer", {
-    {
-        { "default", "mesecons_luacontroller" }, {
-            { "default:stone", "default:glass", "default:stone" },
-            { "default:stone", "mesecons_luacontroller:luacontroller0000", "default:stone" },
-            { "default:stone", "default:stone", "default:stone" }
-        }
-    }, {
-        { "default" }, {
-            { "default:stone", "default:glass", "default:stone" },
-            { "default:stone", "default:mese_crystal", "default:stone" },
-            { "default:stone", "default:stone", "default:stone" }
-        }
-    }, {
-        -- Mineclonia
-        { "mcl_core", "mcl_panes", "mcl_redstone_torch" }, {
-            { "mcl_core:stone", "mcl_panes:pane_natural_flat", "mcl_core:stone" },
-            { "mcl_core:stone", "mcl_redstone_torch:redstoneblock", "mcl_core:stone" },
-            { "mcl_core:stone", "mcl_core:stone", "mcl_core:stone" }
-        }
-    }, {
-        -- VoxeLibre
-        { "mcl_core", "xpanes", "mesecons_torch" }, {
-            { "mcl_core:stone", "xpanes:pane_natural_flat", "mcl_core:stone" },
-            { "mcl_core:stone", "mesecons_torch:redstoneblock", "mcl_core:stone" },
-            { "mcl_core:stone", "mcl_core:stone", "mcl_core:stone" }
-        }
-    }
-})

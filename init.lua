@@ -13,7 +13,7 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
 -- global mod namespace
@@ -31,5 +31,6 @@ modular_computers.S = minetest.get_translator(modular_computers.mod.name)
 -- Load the scripts
 dofile(modular_computers.mod.path .. "/src/utilities.lua")
 dofile(modular_computers.mod.path .. "/src/os/init.lua")
-dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
 dofile(modular_computers.mod.path .. "/src/items/init.lua")
+dofile(modular_computers.mod.path .. "/src/nodes/init.lua")
+dofile(modular_computers.mod.path .. "/src/recipes.lua")

@@ -125,8 +125,9 @@ function terminal.add_history(meta, command)
     mark_private(meta)
 end
 
--- Converts scrollback text to screen rows for a player with the given language
-function terminal.get_rows(text, lang_code)
+-- Converts scrollback text to screen rows for a player with the given language,
+-- wrapped at `columns` (terminal.COLUMNS by default)
+function terminal.get_rows(text, lang_code, columns)
     if minetest.get_translated_string then
         text = minetest.get_translated_string(lang_code or "", text)
     end
@@ -137,7 +138,7 @@ function terminal.get_rows(text, lang_code)
     local lines = split_lines(text)
     local rows = {}
     for index = math.max(#lines - terminal.MAX_LINES + 1, 1), #lines do
-        wrap_line(lines[index], terminal.COLUMNS, rows)
+        wrap_line(lines[index], columns or terminal.COLUMNS, rows)
     end
     return rows
 end

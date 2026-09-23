@@ -17,4 +17,7 @@
 ]]
 
 dofile(modular_computers.mod.path .. "/src/nodes/redstone.lua")
+dofile(modular_computers.mod.path .. "/src/nodes/display.lua")
 dofile(modular_computers.mod.path .. "/src/nodes/computer.lua")
+dofile(modular_computers.mod.path .. "/src/nodes/tower.lua")
+dofile(modular_computers.mod.path .. "/src/nodes/monitor.lua")

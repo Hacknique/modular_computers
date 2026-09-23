@@ -6,7 +6,7 @@ sourcefile("init")
 
 describe("redstone", function()
 
-	local NODE_NAME = "modular_computers:computer"
+	local NODE_NAME = "modular_computers:tower"
 	local redstone = modular_computers.redstone
 	local pos = {x=0, y=0, z=0}
 
@@ -31,8 +31,8 @@ describe("redstone", function()
 		end
 	end)
 
-	it("names sides as seen by a player looking at the screen", function()
-		-- The screen faces south
+	it("names sides as seen by a player looking at the front", function()
+		-- The front faces south
 		place(0)
 		assert.equals("south", redstone.get_direction_name(pos, "front"))
 		assert.equals("north", redstone.get_direction_name(pos, "back"))
@@ -41,7 +41,7 @@ describe("redstone", function()
 		assert.equals("up", redstone.get_direction_name(pos, "top"))
 		assert.equals("down", redstone.get_direction_name(pos, "bottom"))
 
-		-- The screen faces west
+		-- The front faces west
 		place(1)
 		assert.equals("west", redstone.get_direction_name(pos, "front"))
 		assert.equals("north", redstone.get_direction_name(pos, "left"))
@@ -101,7 +101,7 @@ describe("redstone", function()
 		assert.nodename(NODE_NAME, pos)
 	end)
 
-	it("turns its outputs with the computer", function()
+	it("turns its outputs with the tower", function()
 		place(0)
 		redstone.set_output(pos, "front", true)
 		local node = core.get_node(pos)

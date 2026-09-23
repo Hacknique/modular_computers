@@ -6,7 +6,8 @@ mineunit("auth")
 mineunit("server")
 sourcefile("init")
 
-local NODE_NAME = "modular_computers:computer"
+local TOWER = "modular_computers:tower"
+local MONITOR = "modular_computers:monitor"
 local FORMNAME = "modular_computers:computer_formspec"
 
 -- Splits formspec list content on unescaped separators and removes the escapes
@@ -43,16 +44,21 @@ local function terminal_input(form)
 	return split_escaped(value, "")[1]
 end
 
-describe(NODE_NAME, function()
+describe("computer", function()
 
 	world.set_default_node({name="air",param2=0})
 
 	local player = Player("Sam")
+	local tower_pos = {x=1, y=0, z=1}
+	local monitor_pos = {x=1, y=1, z=1}
 
 	-- Execute on mods loaded callbacks to finish loading.
 	mineunit:mods_loaded()
 	-- Tell mods that 1 minute passed already to execute all weird core.after hacks.
 	mineunit:execute_globalstep(60)
+
+	-- Screens are entities, which mineunit can't run: see display_spec.lua for the screen logic
+	modular_computers.display.update = function() end
 
 	setup(function()
 		mineunit:execute_on_joinplayer(player)
@@ -61,6 +67,27 @@ describe(NODE_NAME, function()
 	teardown(function()
 		mineunit:execute_on_leaveplayer(player)
 	end)
+
+	-- Puts an item into a slot of the tower like a player would, returns whether it went in
+	local function put(list, item)
+		local stack = ItemStack(item)
+		local def = core.registered_nodes[core.get_node(tower_pos).name]
+		if def.allow_metadata_inventory_put(tower_pos, list, 1, stack, player) == 0 then
+			return false
+		end
+		core.get_meta(tower_pos):get_inventory():set_stack(list, 1, stack)
+		def.on_metadata_inventory_put(tower_pos, list, 1, stack, player)
+		return true
+	end
+
+	local function take(list)
+		local inv = core.get_meta(tower_pos):get_inventory()
+		local stack = inv:get_stack(list, 1)
+		local def = core.registered_nodes[core.get_node(tower_pos).name]
+		inv:set_stack(list, 1, ItemStack(nil))
+		def.on_metadata_inventory_take(tower_pos, list, 1, stack, player)
+		return stack
+	end
 
 	-- Type a command into the open terminal and press enter
 	local function enter(command)
@@ -79,64 +106,79 @@ describe(NODE_NAME, function()
 	end
 
 	it("does not stack", function()
-		assert.equals(1, ItemStack(NODE_NAME):get_stack_max())
+		for _, name in ipairs({ TOWER, MONITOR, "modular_computers:cpu_tier_1" }) do
+			assert.equals(1, ItemStack(name):get_stack_max())
+		end
 
 		mineunit:clear_InvRef(player:get_inventory())
-		player:get_inventory():add_item("main", NODE_NAME)
-		player:get_inventory():add_item("main", NODE_NAME)
-		assert.has_item(player, "main", 1, NODE_NAME .. " 1")
-		assert.has_item(player, "main", 2, NODE_NAME .. " 1")
+		player:get_inventory():add_item("main", TOWER)
+		player:get_inventory():add_item("main", TOWER)
+		assert.has_item(player, "main", 1, TOWER .. " 1")
+		assert.has_item(player, "main", 2, TOWER .. " 1")
+	end)
+
+	it("turns old computers into monitors", function()
+		assert.equals(MONITOR, core.registered_aliases["modular_computers:computer"])
+		assert.equals(MONITOR, core.registered_aliases["modular_computers:computer_100000"])
 	end)
 
 	it("can be placed", function()
 		mineunit:clear_InvRef(player:get_inventory())
-		player:set_wielded_item(NODE_NAME)
-		-- Try to place one from above
-		player:do_set_pos_fp({x=0, y=2, z=0})
-		player:do_place({x=0, y=1, z=0})
-
-		-- Check for in world node
-		assert.nodename(NODE_NAME, {x=0, y=0, z=0})
-		-- Make sure our only computer was used
+		player:set_wielded_item(TOWER)
+		player:do_set_pos_fp({x=1, y=2, z=1})
+		player:do_place({x=1, y=1, z=1})
+		assert.nodename(TOWER, tower_pos)
 		assert.is_true(player:get_wielded_item():is_empty())
+
+		world.set_node(monitor_pos, {name=MONITOR, param2=0})
 	end)
 
-	it("can be placed with aux1", function()
-		player:set_wielded_item(NODE_NAME)
-		-- Try to place one from below, this one should go above your head
-		player:do_set_pos_fp({x=1, y=-1, z=1})
-		player:do_place({x=1, y=0, z=1}, { aux1 = true })
-
-		-- Check for in world node
-		assert.nodename(NODE_NAME, {x=1, y=1, z=1})
-		assert.is_true(player:get_wielded_item():is_empty())
+	it("needs a computer tower under the monitor", function()
+		world.set_node({x=5, y=1, z=5}, {name=MONITOR, param2=0})
+		player:do_place_from_above({x=5, y=1, z=5})
+		assert.is_nil(mineunit:get_player_formspec(player))
 	end)
 
-	it("can be used", function()
-		player:set_wielded_item(NODE_NAME)
-		-- Maybe it does something if we'd just use it
-		player:do_set_pos_fp({x=1, y=-1, z=1})
-		player:do_use({x=2, y=0, z=1})
-
-		-- Check that we still have our computer
-		assert.has_item(player, "main", 1, NODE_NAME .. " 1")
+	it("does not open the terminal without parts", function()
+		player:do_place_from_above(monitor_pos)
+		assert.is_nil(mineunit:get_player_formspec(player))
+		assert.same({ "Motherboard" }, modular_computers.computer.get_missing(tower_pos))
 	end)
 
-	it("can be used with aux1", function()
-		player:set_wielded_item(NODE_NAME)
-		-- Using it didn't do anything interesting, maybe if we'd hold aux1 and try again
-		player:do_set_pos_fp({x=1, y=-1, z=1})
-		player:do_use({x=2, y=0, z=1}, { aux1 = true })
-
-		-- Make sure nobody stole our computer
-		assert.has_item(player, "main", 1, NODE_NAME .. " 1")
+	it("takes components up to the tier of its motherboard", function()
+		assert.is_false(put("cpu", "modular_computers:cpu_tier_1"))
+		assert.is_false(put("motherboard", "modular_computers:cpu_tier_1"))
+		assert.is_true(put("motherboard", "modular_computers:motherboard_tier_2"))
+		assert.is_false(put("cpu", "modular_computers:cpu_tier_3"))
+		assert.is_false(put("cpu", "modular_computers:gpu_tier_1"))
+		assert.is_true(put("cpu", "modular_computers:cpu_tier_2"))
+		assert.is_true(put("gpu", "modular_computers:gpu_tier_1"))
+		assert.is_false(modular_computers.computer.is_running(tower_pos))
+		assert.same({ "RAM", "Hard Drive" }, modular_computers.computer.get_missing(tower_pos))
 	end)
 
-	it("opens a black terminal when right clicked", function()
-		-- Take away any leftover stuff
+	it("keeps components on the motherboard", function()
+		local motherboard = take("motherboard")
+		local inv = core.get_meta(tower_pos):get_inventory()
+		assert.is_true(inv:is_empty("cpu"))
+		assert.is_true(inv:is_empty("gpu"))
+		local installed = modular_computers.hardware.get_installed(motherboard)
+		assert.equals("modular_computers:cpu_tier_2", ItemStack(installed.cpu):get_name())
+
+		assert.is_true(put("motherboard", motherboard))
+		assert.equals("modular_computers:cpu_tier_2", inv:get_stack("cpu", 1):get_name())
+		assert.equals("modular_computers:gpu_tier_1", inv:get_stack("gpu", 1):get_name())
+	end)
+
+	it("starts when it has all parts", function()
+		assert.is_true(put("ram", "modular_computers:ram_tier_1"))
+		assert.is_true(put("hdd", "modular_computers:hdd_tier_2"))
+		assert.is_true(modular_computers.computer.is_running(tower_pos))
+	end)
+
+	it("opens a black terminal when the monitor is right clicked", function()
 		mineunit:clear_InvRef(player:get_inventory())
-
-		player:do_place_from_above({x=1, y=1, z=1})
+		player:do_place_from_above(monitor_pos)
 
 		local form = mineunit:get_player_formspec(player)
 		assert.is_Form(form)
@@ -145,7 +187,7 @@ describe(NODE_NAME, function()
 		-- Enter runs commands without closing the terminal, there is no button for it
 		assert.is_truthy(form:text():find("field_close_on_enter[terminal_in;false]", 1, true))
 		assert.is_nil(form:one(".*", "button"))
-		-- A new computer greets the player
+		-- The computer greets the player when it starts
 		assert.is_truthy(table.concat(terminal_rows(form), "\n"):find("help", 1, true))
 		assert.equals("", terminal_input(form))
 	end)
@@ -193,39 +235,46 @@ describe(NODE_NAME, function()
 		end
 	end)
 
-	it("switches redstone outputs", function()
-		local pos = {x=1, y=1, z=1}
+	it("switches the tower's redstone outputs", function()
 		enter("redstone set front on")
-		assert.nodename(NODE_NAME .. "_100000", pos)
+		assert.nodename(TOWER .. "_100000", tower_pos)
 		enter("redstone set all on")
-		assert.nodename(NODE_NAME .. "_111111", pos)
+		assert.nodename(TOWER .. "_111111", tower_pos)
 		enter("redstone set all off")
-		assert.nodename(NODE_NAME, pos)
+		assert.nodename(TOWER, tower_pos)
 
 		local rows = terminal_rows(enter("redstone set sideways on"))
 		assert.is_truthy(table.concat(rows, "\n"):find("usage: redstone", 1, true))
-		assert.nodename(NODE_NAME, pos)
+		assert.nodename(TOWER, tower_pos)
 	end)
 
 	it("shows the redstone state of every side", function()
-		local pos = {x=1, y=1, z=1}
 		enter("redstone set top on")
 		local rows = terminal_rows(enter("redstone"))
 		enter("redstone set top off")
 
-		-- This computer was placed against the ceiling, so it is upside down
 		local direction_name = modular_computers.redstone.get_direction_name
-		assert.equals("down", direction_name(pos, "top"))
-		assert.equals(string.format("front   %-6s in 0   out off", direction_name(pos, "front")), rows[#rows - 5])
-		assert.equals("top     down   in 0   out on", rows[#rows - 1])
+		assert.equals(string.format("front   %-6s in 0   out off", direction_name(tower_pos, "front")), rows[#rows - 5])
+		assert.equals("top     up     in 0   out on", rows[#rows - 1])
+	end)
+
+	it("stops when a part is taken out", function()
+		enter("redstone set bottom on")
+		take("ram")
+		assert.is_false(modular_computers.computer.is_running(tower_pos))
+		-- Its outputs switch off with it
+		assert.nodename(TOWER, tower_pos)
+		-- And its terminal stops taking commands
+		enter("redstone set bottom on")
+		assert.nodename(TOWER, tower_pos)
 	end)
 
 	it("stops taking commands once closed", function()
-		local pos = {x=1, y=1, z=1}
-		local name = core.get_node(pos).name
+		assert.is_true(put("ram", "modular_computers:ram_tier_1"))
+		player:do_place_from_above(monitor_pos)
 		mineunit:execute_on_player_receive_fields(player, FORMNAME, { quit = "true" })
 		enter("redstone set bottom on")
-		assert.nodename(name, pos)
+		assert.nodename(TOWER, tower_pos)
 	end)
 
 end)
