@@ -13,7 +13,7 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
 modular_computers.itemstack = {}
@@ -26,6 +26,10 @@ function modular_computers.get_context(name)
     modular_computers.contexts[name] = context
     return context
 end
+
+minetest.register_on_leaveplayer(function(player)
+    modular_computers.contexts[player:get_player_name()] = nil
+end)
 
 function modular_computers.inventory_from_player_name(player_name)
     local player = minetest.get_player_by_name(player_name)
@@ -81,35 +85,56 @@ function modular_computers.generate_id(player_name)
     return sanitized_string
 end
 
+-- Returns true if an item (or an alias of one) with this name is registered.
+-- Empty slots and "group:" ingredients are always considered available.
+function modular_computers.item_exists(name)
+    if name == "" or string.sub(name, 1, 6) == "group:" then
+        return true
+    end
+    return minetest.registered_items[name] ~= nil
+end
+
 function modular_computers.register_bulk_recipes(item_name, item_recipes)
-    -- Iterate through an array of recipes
-    modular_computers:act(minetest.serialize(item_recipes))
+    -- Register the first recipe whose mods are all loaded and whose ingredients all exist
     for _, item in ipairs(item_recipes) do
         -- The first element of item is the mod list, the second element is the recipe
         local mods = item[1]
         local recipe = item[2]
-        local output_recipe = recipe -- Initialize output_recipe with the original recipe
-        modular_computers:act(minetest.serialize(mods))
-        modular_computers:act(minetest.serialize(recipe))
 
-        -- Assume all required mods are loaded, and set this flag to false if any are missing
         local all_mods_loaded = true
         for _, mod in ipairs(mods) do
-            if not minetest.get_modpath(mod) then -- Corrected function name from modpath to get_modpath
-                all_mods_loaded = false           -- If any required mod is not loaded, set flag to false
-                break                             -- No need to check further mods if one is missing
+            if not minetest.get_modpath(mod) then
+                all_mods_loaded = false
+                break
             end
         end
 
-        -- If all required mods are loaded, register the recipe
+        local missing_item = nil
         if all_mods_loaded then
+            for _, row in ipairs(recipe) do
+                for _, ingredient in ipairs(row) do
+                    if not modular_computers.item_exists(ingredient) then
+                        missing_item = ingredient
+                    end
+                end
+            end
+            if missing_item then
+                modular_computers:warn("skipping " .. item_name .. " recipe for " ..
+                    table.concat(mods, ", ") .. ": unknown item " .. missing_item)
+            end
+        end
+
+        if all_mods_loaded and not missing_item then
             minetest.register_craft({
                 output = "modular_computers:" .. item_name,
-                recipe = output_recipe
+                recipe = recipe
             })
-            break
+            modular_computers:act("registered " .. item_name .. " recipe for " .. table.concat(mods, ", "))
+            return true
         end
     end
+    modular_computers:err("could not find a crafting recipe for " .. item_name)
+    return false
 end
 
 function modular_computers.find_itemstack_with_metafield(inventory,

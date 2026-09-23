@@ -7,7 +7,7 @@ globals = {
 }
 
 read_globals = {
-    string = {fields = {"split"}},
+    string = {fields = {"split", "trim"}},
     table = {fields = {"copy", "getn"}},
 
     -- Builtin
@@ -16,4 +16,13 @@ read_globals = {
 
     -- MTG
     "default", "sfinv", "creative",
+
+    -- Mineclonia / VoxeLibre / mesecons
+    "mcl_sounds", "mcl_redstone", "mesecon",
+}
+
+files["spec/"] = {
+    std = "+busted",
+    globals = {"core", "mineunit"},
+    read_globals = {"sourcefile", "fixture", "world", "Player"},
 }

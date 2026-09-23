@@ -13,7 +13,7 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
 modular_computers.register_motherboard("tier_1", "Tier 1", nil, {
@@ -62,7 +62,23 @@ modular_computers.register_motherboard("tier_1", "Tier 1", nil, {
     }
 }
 }, {
-    { "mcl_core" }, {
+    -- Mineclonia
+    { "mcl_core", "mcl_copper", "mcl_redstone_torch" }, {
+    {
+        "mcl_core:iron_ingot", "mcl_copper:copper_ingot",
+        "mcl_core:iron_ingot"
+    }, {
+    "mcl_copper:copper_ingot", "mcl_redstone_torch:redstoneblock",
+    "mcl_copper:copper_ingot"
+},
+    {
+        "mcl_core:iron_ingot", "mcl_copper:copper_ingot",
+        "mcl_core:iron_ingot"
+    }
+}
+}, {
+    -- VoxeLibre
+    { "mcl_core", "mcl_copper", "mesecons_torch" }, {
     {
         "mcl_core:iron_ingot", "mcl_copper:copper_ingot",
         "mcl_core:iron_ingot"

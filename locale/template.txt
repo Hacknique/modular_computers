@@ -1,11 +1,16 @@
 # textdomain: modular_computers
-Terminal=
-Execute=
-Input Command=
+Clear the terminal screen=
+@1: command not found=
+ERROR: Command exited with code: =
 Computer=
+Modular Computers=
+Type 'help' for a list of commands.=
+Print text to the terminal=
+List the available commands=
 Motherboard=
 CPU=
 GPU=
 Hard Drive=
 USB=
-
+Read and set redstone signals on the sides of the computer=
+not running on a computer=

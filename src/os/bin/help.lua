@@ -13,10 +13,17 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
-dofile(modular_computers.mod.path .. "/src/os/bin/clear.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/echo.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/help.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/redstone.lua")
+modular_computers.command.register("help", {
+    description = modular_computers.S("List the available commands"),
+    func = function()
+        local lines = {}
+        for _, name in ipairs(modular_computers.command.list()) do
+            local description = modular_computers.command.get(name).description
+            table.insert(lines, description and string.format("%-10s %s", name, description) or name)
+        end
+        return "", table.concat(lines, "\n") .. "\n", "", 0
+    end,
+})

@@ -1,10 +1,16 @@
 # textdomain: modular_computers
-Terminal=Термінал
-Execute=Виконати
-Input Command=Введіть команду
+Clear the terminal screen=
+@1: command not found=
+ERROR: Command exited with code: =
 Computer=Комп'ютер
+Modular Computers=
+Type 'help' for a list of commands.=
+Print text to the terminal=
+List the available commands=
 Motherboard=Материнська плата
 CPU=Процесор
 GPU=Відеокартка
 Hard Drive=Жорсткий диск
 USB=USB
+Read and set redstone signals on the sides of the computer=
+not running on a computer=

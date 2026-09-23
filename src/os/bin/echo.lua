@@ -13,10 +13,11 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
 modular_computers.command.register("echo", {
+    description = modular_computers.S("Print text to the terminal"),
     func = function(argc, ...)
         return "", table.concat({...}, " ") .. "\n", "", 0
     end,

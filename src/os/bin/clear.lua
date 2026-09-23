@@ -13,10 +13,12 @@
     The license is included in the project root under the file labeled LICENSE. All files not otherwise
     specified under a different license shall be put under this license.
 
-    Copyright (c) 2023-2026 James Clarke <james@jamesdavidclarke.com>
+    Copyright (c) 2026 James Clarke <james@jamesdavidclarke.com>
 ]]
 
-dofile(modular_computers.mod.path .. "/src/os/bin/clear.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/echo.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/help.lua")
-dofile(modular_computers.mod.path .. "/src/os/bin/redstone.lua")
+modular_computers.command.register("clear", {
+    description = modular_computers.S("Clear the terminal screen"),
+    func = function()
+        return "", modular_computers.terminal.CLEAR, "", 0
+    end,
+})
