@@ -74,6 +74,9 @@ minetest.register_node("modular_computers:computer", {
 minetest.register_on_player_receive_fields(
     function(player, formname, fields)
         if formname == "modular_computers:computer_formspec" then
+            if fields.quit then
+                return
+            end
             -- Obtain the position of the node the player is interacting with
             local player_name = player:get_player_name()
             local pos = modular_computers.get_context(player_name).computer_pos
